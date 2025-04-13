@@ -1,0 +1,8 @@
+conda create -n fitbeat_env python=3.11 -y
+conda activate firbeat_env
+
+pip install openai python-dotenv
+pip install langchain faiss-cpu sentence-transformers fastapi uvicorn
+
+
+ find . -not -path '*/\.*' | sed -e 's/[^-][^\/]*\//|   /g' -e 's/| *\([^| ]\)/|-- \1/' > structure.txt
