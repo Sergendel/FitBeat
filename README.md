@@ -2,7 +2,7 @@
 
 ## 🚀 Project Overview
 
-**FitBeat** is an intelligent music recommendation agent powered by an LLM (Large Language Model) designed explicitly for context-driven music selection. Users describe emotional or situational contexts (e.g., "energetic music for gym workout"), and FitBeat automatically translates these descriptions into detailed song parameters such as tempo, energy, danceability, and retrieves suitable songs from a dataset. It then downloads and converts these tracks from YouTube into mp3 format.
+**FitBeat** is an intelligent music recommendation agent powered by an LLM (Large Language Model) designed explicitly for context-driven music selection. Users describe emotional or situational contexts (e.g., \"energetic music for gym workout\"), and FitBeat automatically translates these descriptions into detailed song parameters such as tempo, energy, danceability, and retrieves suitable songs from a dataset. It then downloads and converts these tracks from YouTube into mp3 format.
 
 The goal is to demonstrate robust ML engineering skills, particularly in developing LLM-driven autonomous agents.
 
@@ -68,12 +68,21 @@ The goal is to demonstrate robust ML engineering skills, particularly in develop
 ### Requirements
 
 - Python 3.11
-- OpenAI API key (set in `.env` file as `OPENAI_API_KEY`)
+- OpenAI API key and Genius API key
 
 ### Installation
 
 ```bash
 pip install -r requirements.txt
+```
+
+### Environment Setup
+
+Create a `.env` file in the root directory of the project with the following content:
+
+```env
+OPENAI_API_KEY='your open ai api key'
+GENIUS_API_KEY='your genius ai api key'
 ```
 
 ### Usage
@@ -87,7 +96,7 @@ python src/orchestrator.py
 ### Example
 
 ```python
-user_prompt = "music tracks for dancing party for 50+ years old"
+user_prompt = \"music tracks for dancing party for 50+ years old\"
 orchestrator.run_agent(user_prompt, num_tracks=10)
 ```
 
