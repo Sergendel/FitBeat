@@ -16,17 +16,7 @@ class LLMExecutor:
         self.temperature = temperature
 
     def execute(self, messages):
-        """
-        Sends formatted LangChain messages directly to the LLM.
-
-        Parameters:
-        - messages (list): List of structured messages (SystemMessage, HumanMessage).
-
-        Returns:
-        - dict: Parsed JSON response from LLM.
-        """
         try:
-            # Conversion from LangChain message objects to OpenAI-compatible dicts
             openai_messages = [
                 {
                     "role": "user" if msg.type == "human" else msg.type,
@@ -42,16 +32,13 @@ class LLMExecutor:
 
             content = response.choices[0].message.content.strip()
 
-            # Debugging step
-            #print("\n Raw LLM response:\n", content)
-
-            result = json.loads(content)
-            return result
-
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
-            print(f"Raw response:\n{content}")
-            return None
+            # Automatically detect JSON or text
+            try:
+                result = json.loads(content)
+                return result  # JSON parsed successfully
+            except json.JSONDecodeError:
+                # Not JSON, return raw text
+                return content
 
         except Exception as e:
             print(f"Error during LLM API call: {e}")

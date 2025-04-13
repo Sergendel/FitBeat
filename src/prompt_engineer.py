@@ -61,3 +61,136 @@ class PromptEngineer:
         user_message = HumanMessage(content=user_prompt)
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
+
+
+    def construct_planning_prompt_with_example(self, user_prompt):
+        system_message = SystemMessage(content=f"""
+        You're a task-planning assistant for a music recommendation agent named FitBeat.
+
+        FitBeat has explicitly the following abilities and resources:
+
+        AVAILABLE RESOURCES:
+        - A Kaggle dataset containing tracks with numeric audio features (tempo, energy, danceability, valence, loudness, speechiness, instrumentalness, acousticness, liveness, genre, popularity).
+        - Ability to interpret emotional descriptions using LLM and convert them to numeric audio parameters.
+        - Ability to filter tracks explicitly based on numeric audio parameters.
+        - Ability to retrieve audio tracks from YouTube explicitly.
+        - Ability to convert downloaded tracks to mp3 format explicitly.
+        - Ability to summarize and present results explicitly.
+
+        YOUR TASK:
+        Given a user's music request, explicitly outline a clear and executable sequence of actions. 
+        Each action must explicitly correspond to one of the listed abilities or resources.
+
+        EXAMPLE (user input: "relaxing music for meditation"):
+        1. Interpret user's emotional description into numeric audio parameters.
+        2. Filter Kaggle dataset using numeric parameters.
+        3. Retrieve recommended audio tracks from YouTube.
+        4. Convert downloaded tracks to mp3 format.
+        5. Summarize and explicitly present recommended tracks.
+
+        Return explicitly as a numbered list of actions. Do not include any steps beyond listed capabilities.
+        """)
+
+        user_message = HumanMessage(content=user_prompt)
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_planning_prompt(self, user_prompt):
+        system_message = SystemMessage(content=f"""
+        You're a task-planning assistant for a music recommendation agent named FitBeat.
+    
+        FitBeat explicitly has these abilities and resources:
+        - Kaggle dataset with audio features (tempo, energy, danceability, valence, etc.).
+        - Convert emotional descriptions into numeric audio parameters.
+        - Filter tracks explicitly by audio parameters.
+        - Retrieve tracks explicitly from YouTube.
+        - Convert tracks explicitly to mp3.
+        - Summarize and present results explicitly.
+    
+        Explicitly outline a clear, executable sequence of actions corresponding only to these abilities.
+    
+        Return explicitly as a numbered list of actions.
+        """)
+
+        user_message = HumanMessage(content=user_prompt)
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_action_structuring_prompt(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
+
+        Explicitly provided numbered list of actions clearly describes tasks that FitBeat (music recommendation agent) can execute.
+
+        Explicitly available actions are ONLY these keywords: "Analyze", "Filter", "Retrieve", "Convert", "Summarize".
+
+        Clearly and explicitly analyze provided text and match each numbered action explicitly to one keyword from the allowed actions above.
+
+        Explicit JSON format you must return:
+        {
+          "actions": ["Action1", "Action2", "Action3", ...]
+        }
+
+        No additional explanation. Explicitly respond ONLY with valid JSON.
+        """)
+
+        user_message = HumanMessage(
+            content=f"Explicitly convert this text plan into structured JSON:\n\n{explicit_plan}")
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+
+if __name__ == "__main__":
+    from llm_executor import LLMExecutor
+    import json
+
+    prompt_engineer = PromptEngineer()
+    llm_executor = LLMExecutor()
+
+    user_prompt = "music tracks suitable for studying for exams"
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you just find these exact tracks on YouTube, download and convert them to mp3, "
+        "and then summarize the results for me?"
+    )
+
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you prepare a payable playlist with these songs for me  ?"
+    )# tries to find common featires and creates new playlist
+
+    user_prompt = (
+        "I already have a list of specific songs. "
+        "Just download these exact songs from YouTube, convert them to mp3, and summarize the resulting playlist. "
+        "No additional analysis or recommendations are needed."
+    )# works but too simple
+
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you prepare a payable playlist with these songs for me  ?"
+        "No additional analysis or recommendations are needed."
+    ) # GOOD
+
+    user_prompt = (
+        "I already have a list of songs. I want playlist with similar, but other, songs "
+        "Can you do it for me ?"
+    )  # good!
+
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ? I just need track names, not the playable files"
+    # )  # good!
+
+    planning_prompt = prompt_engineer.construct_planning_prompt(user_prompt)
+    messages = planning_prompt.format_messages(user_prompt=user_prompt)
+
+    explicit_plan = llm_executor.execute(messages)
+
+    print("\nStep 1 - Explicit Plan (Text):\n", explicit_plan)
+
+    # Step 2: Convert explicit plan into structured actions JSON
+    structuring_prompt = prompt_engineer.construct_action_structuring_prompt(explicit_plan)
+    messages_json = structuring_prompt.format_messages(explicit_plan=explicit_plan)
+    structured_actions = llm_executor.execute(messages_json)
+
+    print("\nStep 2 - Structured Actions (JSON):\n", json.dumps(structured_actions, indent=2))
