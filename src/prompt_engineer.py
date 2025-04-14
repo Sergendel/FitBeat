@@ -120,18 +120,25 @@ class PromptEngineer:
         system_message = SystemMessage(content="""
         You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
 
-        Explicitly provided numbered list of actions clearly describes tasks that FitBeat (music recommendation agent) can execute.
+        FitBeat (music recommendation agent) has ONLY these available explicit action keywords:
+        - "Analyze": explicitly includes analyzing user prompt, interpreting emotional descriptions, converting them explicitly into numeric audio parameters.
+        - "Filter": explicitly includes filtering the dataset using numeric audio parameters.
+        - "Retrieve": explicitly includes retrieving audio tracks from YouTube.
+        - "Convert": explicitly includes converting retrieved tracks explicitly into mp3 format.
+        - "Summarize": explicitly includes summarizing results clearly.
 
-        Explicitly available actions are ONLY these keywords: "Analyze", "Filter", "Retrieve", "Convert", "Summarize".
+        Explicitly analyze each provided numbered action carefully, mapping explicitly each action to ONE keyword above.
 
-        Clearly and explicitly analyze provided text and match each numbered action explicitly to one keyword from the allowed actions above.
+        **Important clarification explicitly:**  
+        Converting emotional or situational descriptions explicitly into numeric audio parameters always clearly maps explicitly to the "Analyze" action.  
+        Converting tracks to mp3 format explicitly maps clearly and only to the "Convert" action.
 
-        Explicit JSON format you must return:
+        Explicit JSON format you must return clearly:
         {
           "actions": ["Action1", "Action2", "Action3", ...]
         }
 
-        No additional explanation. Explicitly respond ONLY with valid JSON.
+        No additional explanation explicitly. Respond ONLY with valid JSON explicitly.
         """)
 
         user_message = HumanMessage(
@@ -176,10 +183,10 @@ if __name__ == "__main__":
         "Can you do it for me ?"
     )  # good!
 
-    # user_prompt = (
-    #     "I already have a list of songs. I want playlist with similar, but other, songs "
-    #     "Can you do it for me ? I just need track names, not the playable files"
-    # )  # good!
+    user_prompt = (
+        "I already have a list of songs. I want playlist with similar, but other, songs "
+        "Can you do it for me ? I just need track names, not the playable files"
+    )  # good!
 
     planning_prompt = prompt_engineer.construct_planning_prompt(user_prompt)
     messages = planning_prompt.format_messages(user_prompt=user_prompt)
