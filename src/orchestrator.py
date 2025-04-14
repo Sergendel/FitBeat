@@ -108,11 +108,11 @@ class Orchestrator:
         folder_path = os.path.join(config.TRACKS_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
 
-        print(f"Downloading recommended tracks and converting to MP3.\n"
-              f"Saving playlist explicitly to folder: '{folder_path}'\n")
-
+        print(f"Downloading recommended tracks explicitly to '{folder_path}'")
         for _, track in tracks.iterrows():
-            self.downloader.download_and_convert(track['track_name'], track['artists'], folder_path)
+            track_name = track['track_name']
+            artist_name = track['artists'].split(';')[0].strip()
+            self.downloader.download_and_convert(track_name, artist_name, folder_path)
 
     def summarize_results(self, tracks):
         print("\nFinal Recommendations:")
@@ -244,12 +244,26 @@ class Orchestrator:
         print("\nAll actions executed explicitly and successfully!")
 
     def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
+        # Normalize explicitly titles and artist names for robust matching explicitly
         ranked_df = pd.DataFrame(ranked_playlist)
-        filtered_df = pd.merge(ranked_df, original_tracks, how='inner',
-                               left_on=['artist', 'title'],
-                               right_on=['artists', 'track_name'])
+        ranked_df['title'] = ranked_df['title'].str.lower().str.strip()
+        ranked_df['artist'] = ranked_df['artist'].str.lower().str.strip()
+
+        original_tracks['normalized_title'] = original_tracks['track_name'].str.lower().str.strip()
+        original_tracks['normalized_artist'] = original_tracks['artists'].str.lower().str.split(';').str[0].str.strip()
+
+        filtered_df = pd.merge(ranked_df, original_tracks,
+                               left_on=['title', 'artist'],
+                               right_on=['normalized_title', 'normalized_artist'],
+                               how='inner')
 
         filtered_df = filtered_df.drop_duplicates(subset=['track_name', 'artists'])
+
+        # Check explicitly for tracks missing after merge explicitly:
+        missing_tracks = set(ranked_df['title']) - set(filtered_df['normalized_title'])
+        if missing_tracks:
+            print(f"⚠️ Explicitly missing tracks after merge explicitly: {missing_tracks}")
+
         return filtered_df
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
@@ -318,7 +332,7 @@ if __name__ == "__main__":
     # planning, single call
     user_prompt = "playlist for birthday party of my 10 years old son"
     user_prompt = "music for intense gym training"
-    orchestrator.run_planning_agent( user_prompt, num_tracks=50)
+    orchestrator.run_planning_agent( user_prompt, num_tracks = 20)
 
 
 

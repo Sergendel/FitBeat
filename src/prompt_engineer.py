@@ -186,13 +186,16 @@ class PromptEngineer:
 
         augmented_prompt = f"""
         Given the user's request explicitly: '{user_prompt}', 
-        and the provided candidate tracks with their lyrics/descriptions explicitly below:
+        and explicitly given the candidate tracks with their lyrics/descriptions explicitly provided below:
 
         {context_text}
 
-        Explicitly rank these tracks in order from most suitable to least suitable explicitly for the user's request. 
+        Explicitly perform the following instructions precisely and explicitly:
 
-        Provide explicitly the ranked list clearly and explicitly in the following JSON format:
+        1. Explicitly rank ALL tracks listed above from MOST suitable to LEAST suitable explicitly according to how closely each matches the user's request.
+        2. Do NOT omit any track explicitly—include every track listed exactly once explicitly.
+        3. Ensure there are NO DUPLICATES explicitly in your final ranked list.
+        4. Return explicitly ONLY this valid JSON format with no additional explanations or text explicitly:
 
         {{
             "ranked_playlist": [
@@ -202,12 +205,11 @@ class PromptEngineer:
             ],
             "summary": "short_summary_for_folder_name"
         }}
-
-        Respond explicitly and ONLY with valid JSON. No additional text or explanations explicitly.
         """
 
         return ChatPromptTemplate.from_messages([
-            SystemMessage(content="You're an expert music recommender ranking candidate tracks explicitly."),
+            SystemMessage(
+                content="You're an expert music recommender ranking candidate tracks explicitly. Follow instructions exactly and explicitly."),
             HumanMessage(content=augmented_prompt)
         ])
 
