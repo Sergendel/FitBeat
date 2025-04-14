@@ -8,9 +8,7 @@ class ExtractFile(ExtractBase):
 
     def __init__(self):
         # set path
-        script_dir = Path(__file__).resolve().parent
-        dataset_path = script_dir.parent / Path(config.FILE_PATH)
-        self.file_path = dataset_path
+        self.file_path = config.FILE_PATH
 
     def load_data(self):
         # Load dataset and ensure 'tempo' is numeric
@@ -22,7 +20,7 @@ class ExtractFile(ExtractBase):
 if __name__ == "__main__":
 
     # set extractor
-    extractor = ExtractFile(config.FILE_PATH)
+    extractor = ExtractFile()
 
     # extract
     data = extractor.load_data()

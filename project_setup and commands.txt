@@ -3,3 +3,12 @@ kaggle dataset link : https://www.kaggle.com/datasets/maharshipandya/-spotify-tr
 
 print project structure
 find . -not -path '*/\.*' | sed -e 's/[^-][^\/]*\//|   /g' -e 's/| *\([^| ]\)/|-- \1/' > structure.txt
+
+
+Flow without RAG:
+User Prompt → Numeric Parameter Generation (LLM) → Initial Numeric Filtering → YouTube Retrieval → MP3 Conversion → Summary
+
+flow with RAG
+User Prompt → Numeric Parameter Generation → Initial Numeric Filtering →
+→ Semantic Retrieval from Genius Corpus →
+→ LLM-Based Refinement of Recommendations → YouTube Retrieval → MP3 Conversion → Summary

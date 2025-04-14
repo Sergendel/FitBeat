@@ -1,4 +1,5 @@
 import re
+import json
 
 class OutputParser:
     def parse_response(self, llm_response):
@@ -25,3 +26,27 @@ class OutputParser:
         except Exception as e:
             print(f"General parsing error: {e}")
             return None, None
+
+    def parse_ranked_playlist(self, llm_response):
+        if isinstance(llm_response, str):
+            try:
+                json_str = re.search(r'\{.*\}', llm_response, re.DOTALL)
+                if json_str:
+                    llm_response = json.loads(json_str.group())
+                else:
+                    print("Parsing error explicitly: No valid JSON found.")
+                    return None, "default_folder"
+            except json.JSONDecodeError:
+                print("Parsing error explicitly: JSON decode failed.")
+                return None, "default_folder"
+
+        try:
+            ranked_playlist = llm_response.get("ranked_playlist", [])
+            summary = llm_response.get("summary", "default_folder")
+
+            folder_name = summary.lower().replace(" ", "_").replace("/", "_")
+            return ranked_playlist, folder_name
+
+        except Exception as e:
+            print(f"General parsing error explicitly: {e}")
+            return None, "default_folder"

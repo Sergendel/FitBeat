@@ -5,7 +5,10 @@ from output_parser import OutputParser
 from track_downloader import TrackDownloader
 from extract.extract_file import ExtractFile
 from src.explicit_filtering_logic import explicit_filtering_logic
-
+from corpus.embeddings.semantic_retrieval import retrieve_or_add_song
+import os
+import config
+import pandas as pd
 
 load_dotenv()
 
@@ -99,11 +102,17 @@ class Orchestrator:
 
         return filtered_tracks
 
+    import os
+
     def fetch_recommended_tracks(self, tracks, folder_name):
+        folder_path = os.path.join(config.TRACKS_DIR, folder_name)
+        os.makedirs(folder_path, exist_ok=True)
+
         print(f"Downloading recommended tracks and converting to MP3.\n"
-              f"Saving playlist to folder: '{folder_name}'\n")
+              f"Saving playlist explicitly to folder: '{folder_path}'\n")
+
         for _, track in tracks.iterrows():
-            self.downloader.download_and_convert(track['track_name'], track['artists'], folder_name)
+            self.downloader.download_and_convert(track['track_name'], track['artists'], folder_path)
 
     def summarize_results(self, tracks):
         print("\nFinal Recommendations:")
@@ -124,7 +133,7 @@ class Orchestrator:
                   f"Time Signature: {row['time_signature']} | "
                   f"Genre: {row['track_genre']}\n")
 
-    def run_agent(self, user_prompt, num_tracks=10):
+    def run_agent_no_RAG(self, user_prompt, num_tracks=10):
         # Step-by-step  workflow:
         params, folder_name = self.analyze_user_request(user_prompt)
 
@@ -136,6 +145,31 @@ class Orchestrator:
         self.fetch_recommended_tracks(tracks, folder_name)
         self.summarize_results(tracks)
 
+    def run_agent(self, user_prompt, num_tracks=10):
+        params, folder_name = self.analyze_user_request(user_prompt)
+
+        tracks = self.search_for_tracks(params, folder_name, num_tracks)
+        if tracks.empty:
+            print("Failed explicitly to find matching tracks.")
+            return
+
+        # Explicitly refine recommendations clearly with semantic retrieval
+        refined_tracks_context = self.refine_tracks_with_semantic_retrieval(tracks)
+
+        # Construct refined prompt explicitly
+        refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
+        messages = refined_prompt.format_messages(user_prompt=user_prompt)
+
+        # Get refined recommendations explicitly from LLM
+        refined_llm_response = self.llm_executor.execute(messages)
+
+        # Explicitly parse and output refined recommendations
+        refined_recommendations, refined_folder_name = self.parser.parse_response(refined_llm_response)
+        print("🎯 Refined Recommendations explicitly:", refined_recommendations)
+
+        # Continue explicitly with retrieval, conversion, and summary
+        self.fetch_recommended_tracks(tracks, refined_folder_name)
+        self.summarize_results(tracks)
 
     def execute_actions(self, actions_list, user_prompt, num_tracks=10):
         """
@@ -160,15 +194,39 @@ class Orchestrator:
                     print("Error: Analyze step missing before Filter.")
                     return
                 tracks = self.search_for_tracks(params, folder_name, num_tracks)
+
                 if tracks.empty:
                     print("No tracks found during filtering.")
                     return
+
+                # Semantic refinement
+                print("Refining using RAG explicitly ...")
+                refined_tracks_context = self.refine_tracks_with_semantic_retrieval(tracks)
+
+                refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
+                messages = refined_prompt.format_messages(user_prompt=user_prompt)
+
+                refined_llm_response = self.llm_executor.execute(messages)
+                ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(refined_llm_response)
+
+                if ranked_playlist:
+                    print("🎯 Ranked Playlist explicitly:", ranked_playlist)
+                    tracks = self.filter_tracks_by_ranking(tracks, ranked_playlist)
+                else:
+                    print("⚠️ No refined ranking received explicitly, continuing explicitly with original tracks.")
+
+                folder_name = refined_folder_name if refined_folder_name else folder_name
+
 
             elif action == "Retrieve":
                 if tracks is None:
                     print("Error: Filter step missing before Retrieve.")
                     return
-                self.fetch_recommended_tracks(tracks, folder_name)
+
+                if refined_folder_name is None:
+                    print("⚠️ Refined folder name is None, falling back to original folder_name explicitly.")
+                    refined_folder_name = folder_name  # explicitly fallback
+                self.fetch_recommended_tracks(tracks, refined_folder_name)
 
             elif action == "Convert":
                 print("Conversion already performed during 'Retrieve' step. Skipping redundant execution.")
@@ -184,6 +242,15 @@ class Orchestrator:
                 return
 
         print("\nAll actions executed explicitly and successfully!")
+
+    def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
+        ranked_df = pd.DataFrame(ranked_playlist)
+        filtered_df = pd.merge(ranked_df, original_tracks, how='inner',
+                               left_on=['artist', 'title'],
+                               right_on=['artists', 'track_name'])
+
+        filtered_df = filtered_df.drop_duplicates(subset=['track_name', 'artists'])
+        return filtered_df
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
         print(f'\n# Step 1: Analyzing user prompt "{user_prompt}". Generating explicit plan of actions...')
@@ -211,6 +278,34 @@ class Orchestrator:
         self.execute_actions(actions_list, user_prompt, num_tracks)
 
 
+    def refine_tracks_with_semantic_retrieval(self, tracks, top_k=3):
+        refined_tracks = []
+        for idx, track in tracks.iterrows():
+            artist = track['artists'].split(';')[0].strip()
+            title = track['track_name']
+
+            print(f"Retrieving semantic context for: {artist} - {title}")
+
+            song_text = retrieve_or_add_song(artist, title)
+
+            if song_text:
+                print(f"Semantic context retrieved for {title}, refining recommendations...")
+                refined_tracks.append({
+                    'artist': artist,
+                    'title': title,
+                    'context': song_text
+                })
+            else:
+                print(f"No semantic context for '{title}'. Proceeding with numeric filtering explicitly.")
+                refined_tracks.append({
+                    'artist': artist,
+                    'title': title,
+                    'context': None  # Explicitly indicates fallback
+                })
+
+        return refined_tracks
+
+
 # Example Usage
 if __name__ == "__main__":
     orchestrator = Orchestrator()
@@ -221,8 +316,9 @@ if __name__ == "__main__":
 
     #
     # planning, single call
-    user_prompt = "music tracks suitable for dancing"
-    orchestrator.run_planning_agent( user_prompt, num_tracks=10)
+    user_prompt = "playlist for birthday party of my 10 years old son"
+    user_prompt = "music for intense gym training"
+    orchestrator.run_planning_agent( user_prompt, num_tracks=50)
 
 
 

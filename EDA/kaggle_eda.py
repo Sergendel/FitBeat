@@ -6,11 +6,10 @@ import config
 
 # load the dataset
 # kaggle dataset path
-script_dir = Path(__file__).resolve().parent
-dataset_path = script_dir.parent / Path(config.FILE_PATH)
+dataset_path = config.FILE_PATH
 df = pd.read_csv(dataset_path)
 
-# Check basic information explicitly
+# Check basic information
 print("Dataset overview:")
 print(df.info())
 

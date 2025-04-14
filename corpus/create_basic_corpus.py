@@ -13,12 +13,11 @@ load_dotenv()
 genius = lyricsgenius.Genius(os.getenv('GENIUS_API_KEY'), timeout=15)
 
 # kaggle dataset path
-script_dir = Path(__file__).resolve().parent
-DATASET_PATH = script_dir.parent / Path(config.FILE_PATH)
+DATASET_PATH = config.FILE_PATH
 
 # folders to store corpus and metadata (list of songs in the corpus)
-CORPUS_DIR = "genius_corpus"
-METADATA_FILE = "corpus_metadata.csv"
+CORPUS_DIR = config.CORPUS_DIR
+CORPUS_METADATA_PATH = config.CORPUS_METADATA_PATH
 
 # create folder
 os.makedirs(CORPUS_DIR, exist_ok=True)
@@ -62,7 +61,7 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
 
     metadata_records = []
 
-    for idx, track in filtered_df.iterrows():
+    for i, (idx, track) in enumerate(filtered_df.iterrows()):
         title = track['track_name'].strip()
         artist = track['artists'].split(';')[0].strip()
         print(f"Processing: {artist} - {title}")
@@ -82,7 +81,7 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
                     f.write(f"Description:\n{description}\n\n")
                     f.write(f"Lyrics:\n{song.lyrics}\n")
 
-                print(f"Saved: {filename}")
+                print(f"Track {i} Saved: {filename}")
 
                 metadata_records.append({
                     'artist': artist,
@@ -112,11 +111,11 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
 # Explicitly call your function with example parameters:
 if __name__ == "__main__":
     create_basic_corpus(
-        tempo=130,
-        danceability=0.8,
-        energy=0.8,
+        tempo=120,
+        danceability=0.7,
+        energy=0.6,
         mode=None,
-        valence=0.8,
+        valence=0.6,
         track_genre=None,
-        max_songs=100
+        max_songs=500
     )

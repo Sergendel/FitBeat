@@ -8,14 +8,14 @@ import config
 class TrackDownloader:
     def __init__(self):
         self.ffmpeg_path = config.FFMPEG_PATH
-        self.download_root = Path(config.TRACKS_DIR)
+        self.TRACKS_DIR = config.TRACKS_DIR
 
     def _safe_filename(self, track_name, artist_name):
         return re.sub(r'[\\/*?:"<>|]', "_", f"{artist_name} - {track_name}")
 
     def download_and_convert(self, track_name, artist_name, subfolder):
         filename_safe = self._safe_filename(track_name, artist_name)
-        save_folder = self.download_root / subfolder
+        save_folder = self.TRACKS_DIR/ subfolder
         save_folder.mkdir(parents=True, exist_ok=True)
         output_mp3 = save_folder / f"{filename_safe}.mp3"
 

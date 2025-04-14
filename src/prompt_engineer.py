@@ -177,6 +177,40 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
+    def construct_refined_prompt(self, user_prompt, refined_tracks_context):
+        context_text = "\n".join([
+            f"{i + 1}. {track['artist']} - {track['title']}:\n{track['context'][:500]}..." if track[
+                'context'] else f"{i + 1}. {track['artist']} - {track['title']}: No additional context."
+            for i, track in enumerate(refined_tracks_context)
+        ])
+
+        augmented_prompt = f"""
+        Given the user's request explicitly: '{user_prompt}', 
+        and the provided candidate tracks with their lyrics/descriptions explicitly below:
+
+        {context_text}
+
+        Explicitly rank these tracks in order from most suitable to least suitable explicitly for the user's request. 
+
+        Provide explicitly the ranked list clearly and explicitly in the following JSON format:
+
+        {{
+            "ranked_playlist": [
+                {{"artist": "Artist1", "title": "Title1"}},
+                {{"artist": "Artist2", "title": "Title2"}},
+                ...
+            ],
+            "summary": "short_summary_for_folder_name"
+        }}
+
+        Respond explicitly and ONLY with valid JSON. No additional text or explanations explicitly.
+        """
+
+        return ChatPromptTemplate.from_messages([
+            SystemMessage(content="You're an expert music recommender ranking candidate tracks explicitly."),
+            HumanMessage(content=augmented_prompt)
+        ])
+
 
 if __name__ == "__main__":
     from llm_executor import LLMExecutor
