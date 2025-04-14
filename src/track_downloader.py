@@ -10,18 +10,21 @@ class TrackDownloader:
         self.ffmpeg_path = config.FFMPEG_PATH
         self.TRACKS_DIR = config.TRACKS_DIR
 
-    def _safe_filename(self, track_name, artist_name):
-        return re.sub(r'[\\/*?:"<>|]', "_", f"{artist_name} - {track_name}")
+    def _safe_filename(self, track_name, artist_name, explicit_index=None):
+        safe_name = re.sub(r'[\\/*?:"<>|]', "_", f"{artist_name} - {track_name}")
+        if explicit_index is not None:
+            return f"{explicit_index:02d} - {safe_name}"
+        return safe_name
 
-    def download_and_convert(self, track_name, artist_name, subfolder):
-        filename_safe = self._safe_filename(track_name, artist_name)
-        save_folder = self.TRACKS_DIR/ subfolder
+    def download_and_convert(self, track_name, artist_name, subfolder, explicit_index=None):
+        filename_safe = self._safe_filename(track_name, artist_name, explicit_index)
+        save_folder = Path(subfolder)
         save_folder.mkdir(parents=True, exist_ok=True)
         output_mp3 = save_folder / f"{filename_safe}.mp3"
 
         # Check if the file already exists
         if output_mp3.exists():
-            print(f"'{output_mp3.name}' already exists, skipping download.")
+            print(f"'{output_mp3.name}' already exists explicitly, skipping download explicitly.")
             return
 
         query = f"{track_name} {artist_name} audio"
@@ -34,6 +37,7 @@ class TrackDownloader:
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([f"ytsearch1:{query}"])
 
+        # find the downloaded file explicitly (might not be .mp3 initially explicitly)
         downloaded_file = next(save_folder.glob(f"{filename_safe}.*"))
 
         subprocess.run(
@@ -46,9 +50,7 @@ class TrackDownloader:
 
         downloaded_file.unlink(missing_ok=True)
 
-        print(f"Downloaded and converted: {output_mp3.name}")
-
-
+        print(f"✅ Explicitly downloaded and converted explicitly: {output_mp3.name}")
 
 #  Example Usage:
 if __name__ == "__main__":
@@ -62,4 +64,4 @@ if __name__ == "__main__":
     subfolder = "test_download"
 
     # Execute download and conversion
-    downloader.download_and_convert(track_name, artist_name, subfolder)
+    downloader.download_and_convert(track_name, artist_name, subfolder, 3)

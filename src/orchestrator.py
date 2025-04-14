@@ -108,11 +108,17 @@ class Orchestrator:
         folder_path = os.path.join(config.TRACKS_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
 
-        print(f"Downloading recommended tracks explicitly to '{folder_path}'")
-        for _, track in tracks.iterrows():
-            track_name = track['track_name']
-            artist_name = track['artists'].split(';')[0].strip()
-            self.downloader.download_and_convert(track_name, artist_name, folder_path)
+        print(f"Downloading recommended tracks explicitly and converting to MP3 explicitly.\n"
+              f"Saving explicitly playlist to folder explicitly: '{folder_path}'\n")
+
+        for idx, track in enumerate(tracks.itertuples()):
+            track_number = idx + 1
+            self.downloader.download_and_convert(
+                track.track_name,
+                track.artists,
+                folder_path,
+                explicit_index=track_number
+            )
 
     def summarize_results(self, tracks):
         print("\nFinal Recommendations:")
