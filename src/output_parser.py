@@ -34,10 +34,10 @@ class OutputParser:
                 if json_str:
                     llm_response = json.loads(json_str.group())
                 else:
-                    print("Parsing error explicitly: No valid JSON found.")
+                    print("Parsing error: No valid JSON found.")
                     return None, "default_folder"
             except json.JSONDecodeError:
-                print("Parsing error explicitly: JSON decode failed.")
+                print("Parsing error: JSON decode failed.")
                 return None, "default_folder"
 
         try:
@@ -48,5 +48,5 @@ class OutputParser:
             return ranked_playlist, folder_name
 
         except Exception as e:
-            print(f"General parsing error explicitly: {e}")
+            print(f"General parsing error: {e}")
             return None, "default_folder"

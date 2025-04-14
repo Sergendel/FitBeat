@@ -41,11 +41,11 @@ class PromptEngineer:
                - track_genre: Select explicitly from provided genre list:
                  {genres}
 
-        If any parameter explicitly can't be determined, explicitly return "null".
+        If any parameter can't be determined,  return "null".
 
-        Additionally, explicitly include a short summary (2-4 words) capturing the user's request for folder naming.
+        Additionally,  include a short summary (2-4 words) capturing the user's request for folder naming.
 
-        Explicit JSON response format:
+        JSON response format:
         {{
             "numeric_ranges": {{
                 "explicit": true, 
@@ -66,28 +66,28 @@ class PromptEngineer:
         system_message = SystemMessage(content=f"""
         You're a task-planning assistant for a music recommendation agent named FitBeat.
 
-        FitBeat has explicitly the following abilities and resources:
+        FitBeat has the following abilities and resources:
 
         AVAILABLE RESOURCES:
         - A Kaggle dataset containing tracks with numeric audio features (tempo, energy, danceability, valence, loudness, speechiness, instrumentalness, acousticness, liveness, genre, popularity).
         - Ability to interpret emotional descriptions using LLM and convert them to numeric audio parameters.
-        - Ability to filter tracks explicitly based on numeric audio parameters.
-        - Ability to retrieve audio tracks from YouTube explicitly.
-        - Ability to convert downloaded tracks to mp3 format explicitly.
-        - Ability to summarize and present results explicitly.
+        - Ability to filter tracks based on numeric audio parameters.
+        - Ability to retrieve audio tracks from YouTube.
+        - Ability to convert downloaded tracks to mp3 format.
+        - Ability to summarize and present results.
 
         YOUR TASK:
-        Given a user's music request, explicitly outline a clear and executable sequence of actions. 
-        Each action must explicitly correspond to one of the listed abilities or resources.
+        Given a user's music request, outline a clear and executable sequence of actions. 
+        Each action must  correspond to one of the listed abilities or resources.
 
         EXAMPLE (user input: "relaxing music for meditation"):
         1. Interpret user's emotional description into numeric audio parameters.
         2. Filter Kaggle dataset using numeric parameters.
         3. Retrieve recommended audio tracks from YouTube.
         4. Convert downloaded tracks to mp3 format.
-        5. Summarize and explicitly present recommended tracks.
+        5. Summarize and  present recommended tracks.
 
-        Return explicitly as a numbered list of actions. Do not include any steps beyond listed capabilities.
+        Return as a numbered list of actions. Do not include any steps beyond listed capabilities.
         """)
 
         user_message = HumanMessage(content=user_prompt)
@@ -98,82 +98,53 @@ class PromptEngineer:
         system_message = SystemMessage(content=f"""
         You're a task-planning assistant for a music recommendation agent named FitBeat.
     
-        FitBeat explicitly has these abilities and resources:
+        FitBeat has these abilities and resources:
         - Kaggle dataset with audio features (tempo, energy, danceability, valence, etc.).
         - Convert emotional descriptions into numeric audio parameters.
-        - Filter tracks explicitly by audio parameters.
-        - Retrieve tracks explicitly from YouTube.
-        - Convert tracks explicitly to mp3.
-        - Summarize and present results explicitly.
+        - Filter tracks by audio parameters.
+        - Retrieve tracks from YouTube.
+        - Convert tracks to mp3.
+        - Summarize and present results.
     
-        Explicitly outline a clear, executable sequence of actions corresponding only to these abilities.
+        Outline a clear, executable sequence of actions corresponding only to these abilities.
     
-        Return explicitly as a numbered list of actions.
+        Return as a numbered list of actions.
         """)
 
         user_message = HumanMessage(content=user_prompt)
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_action_structuring_prompt_old(self, explicit_plan):
-        system_message = SystemMessage(content="""
-        You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
-
-        FitBeat (music recommendation agent) has ONLY these available explicit action keywords:
-        - "Analyze": explicitly includes analyzing user prompt, interpreting emotional descriptions, converting them explicitly into numeric audio parameters.
-        - "Filter": explicitly includes filtering the dataset using numeric audio parameters.
-        - "Retrieve": explicitly includes retrieving audio tracks from YouTube.
-        - "Convert": explicitly includes converting retrieved tracks explicitly into mp3 format.
-        - "Summarize": explicitly includes summarizing results clearly.
-
-        Explicitly analyze each provided numbered action carefully, mapping explicitly each action to ONE keyword above.
-
-        **Important clarification explicitly:**  
-        Converting emotional or situational descriptions explicitly into numeric audio parameters always clearly maps explicitly to the "Analyze" action.  
-        Converting tracks to mp3 format explicitly maps clearly and only to the "Convert" action.
-
-        Explicit JSON format you must return clearly:
-        {
-          "actions": ["Action1", "Action2", "Action3", ...]
-        }
-
-        No additional explanation explicitly. Respond ONLY with valid JSON explicitly.
-        """)
-
-        user_message = HumanMessage(
-            content=f"Explicitly convert this text plan into structured JSON:\n\n{explicit_plan}")
-
-        return ChatPromptTemplate.from_messages([system_message, user_message])
     def construct_action_structuring_prompt(self, explicit_plan):
         system_message = SystemMessage(content="""
-        You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
+        You're an assistant tasked with converting a plain-text, numbered list of task actions into structured JSON.
     
-        FitBeat (music recommendation agent) has ONLY these explicit action keywords, strictly in the logical order they should always appear:
-        1. "Analyze": explicitly includes analyzing user prompt, interpreting emotional descriptions, converting them explicitly into numeric audio parameters.
-        2. "Filter": explicitly includes filtering the dataset using numeric audio parameters.
-        3. "Retrieve": explicitly includes retrieving audio tracks from YouTube.
-        4. "Convert": explicitly includes converting retrieved tracks explicitly into mp3 format.
-        5. "Summarize": explicitly includes summarizing results clearly.
+        FitBeat (music recommendation agent) has ONLY these action keywords, strictly in the logical order they should always appear:
+        1. "Analyze": includes analyzing user prompt, interpreting emotional descriptions, converting them into numeric audio parameters.
+        2. "Filter": includes filtering the dataset using numeric audio parameters.
+        3. "Retrieve": includes retrieving audio tracks from YouTube.
+        4. "Convert": includes converting retrieved tracks into mp3 format.
+        5. "Summarize": includes summarizing results clearly.
     
-        You must explicitly analyze each provided numbered action carefully, mapping explicitly each action clearly to ONE keyword above, while strictly maintaining their logical order.
+        You must analyze each provided numbered action carefully, mapping each action clearly to ONE keyword above, while strictly maintaining their logical order.
     
-        Explicit clarification:
-        - Converting emotional descriptions explicitly maps ONLY to "Analyze".
-        - Filtering tracks explicitly comes AFTER "Analyze".
-        - Retrieval and Conversion clearly and explicitly follow filtering.
-        - Summarizing explicitly comes last.
+        Clarification:
+        - Converting emotional descriptions maps ONLY to "Analyze".
+        - Filtering tracks comes AFTER "Analyze".
+        - Retrieval and Conversion clearly and follow filtering.
+        - Summarizing comes last.
     
-        Always explicitly ensure your structured actions strictly follow the logical order clearly listed above.
+        Always ensure your structured actions strictly follow the logical order clearly listed above.
     
-        Explicit JSON format you must return clearly:
+        JSON format you must return clearly:
         {
           "actions": ["Analyze", "Filter", "Retrieve", "Convert", "Summarize"]
         }
     
-        No additional explanation explicitly. Respond ONLY explicitly with valid JSON.
+        No additional explanation. Respond ONLY with valid JSON.
         """)
 
-        user_message = HumanMessage(content=f"Explicitly convert this text plan into structured JSON:\n\n{explicit_plan}")
+        user_message = HumanMessage(content=f"Convert this text plan into structured JSON:\n\n{explicit_plan}")
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
@@ -185,17 +156,17 @@ class PromptEngineer:
         ])
 
         augmented_prompt = f"""
-        Given the user's request explicitly: '{user_prompt}', 
-        and explicitly given the candidate tracks with their lyrics/descriptions explicitly provided below:
+        Given the user's request: '{user_prompt}', 
+        and given the candidate tracks with their lyrics/descriptions provided below:
 
         {context_text}
 
-        Explicitly perform the following instructions precisely and explicitly:
+        Perform the following instructions precisely:
 
-        1. Explicitly rank ALL tracks listed above from MOST suitable to LEAST suitable explicitly according to how closely each matches the user's request.
-        2. Do NOT omit any track explicitly—include every track listed exactly once explicitly.
-        3. Ensure there are NO DUPLICATES explicitly in your final ranked list.
-        4. Return explicitly ONLY this valid JSON format with no additional explanations or text explicitly:
+        1. Rank ALL tracks listed above from MOST suitable to LEAST suitable according to how closely each matches the user's request.
+        2. Do NOT omit any track explicitly—include every track listed exactly once.
+        3. Ensure there are NO DUPLICATES in your final ranked list.
+        4. Return ONLY this valid JSON format with no additional explanations or text:
 
         {{
             "ranked_playlist": [
@@ -209,7 +180,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([
             SystemMessage(
-                content="You're an expert music recommender ranking candidate tracks explicitly. Follow instructions exactly and explicitly."),
+                content="You're an expert music recommender ranking candidate tracks. Follow instructions exactly and explicitly."),
             HumanMessage(content=augmented_prompt)
         ])
 

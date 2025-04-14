@@ -8,38 +8,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationChain
 from langchain_openai import ChatOpenAI
 
-
-class LLMExecutor_with_memory:
-    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
-        load_dotenv()
-        api_key = os.getenv("OPENAI_API_KEY")
-        if api_key is None:
-            raise ValueError("OPENAI_API_KEY not set in .env file")
-
-        self.llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=temperature)
-        self.memory = ConversationBufferMemory()
-
-        # Integrate memory explicitly with ConversationChain
-        self.chain = ConversationChain(llm=self.llm, memory=self.memory)
-
-    def execute(self, messages):
-        """
-        Execute messages with explicit memory context.
-        """
-        # Convert LangChain message format to a single prompt explicitly
-        prompt_text = "\n".join([msg.content for msg in messages])
-        response = self.chain.run(prompt_text)
-
-        # Attempt JSON parsing explicitly
-        try:
-            return json.loads(response)
-        except json.JSONDecodeError:
-            return response  # return raw text if JSON fails explicitly
-
-
-
-
-
 class LLMExecutor:
     def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
         load_dotenv()
@@ -79,3 +47,35 @@ class LLMExecutor:
         except Exception as e:
             print(f"Error during LLM API call: {e}")
             return None
+
+
+# not in use meanwhile
+class LLMExecutor_with_memory:
+    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
+        load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key is None:
+            raise ValueError("OPENAI_API_KEY not set in .env file")
+
+        self.llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=temperature)
+        self.memory = ConversationBufferMemory()
+
+        # Integrate memory with ConversationChain
+        self.chain = ConversationChain(llm=self.llm, memory=self.memory)
+
+    def execute(self, messages):
+        """
+        Execute messages with explicit memory context.
+        """
+        # Convert LangChain message format to a single prompt explicitly
+        prompt_text = "\n".join([msg.content for msg in messages])
+        response = self.chain.run(prompt_text)
+
+        # Attempt JSON parsing explicitly
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            return response  # return raw text if JSON fails
+
+
+
