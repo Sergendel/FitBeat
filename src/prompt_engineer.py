@@ -58,8 +58,7 @@ class PromptEngineer:
 
     def construct_prompt(self, user_prompt):
         system_message = SystemMessage(content=self.system_template.format(genres=self.dataset_genres))
-        user_message = HumanMessage(content=user_prompt)
-
+        user_message = HumanMessage(content=user_prompt, additional_kwargs={"message_type": "user_prompt"})
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
 
@@ -116,7 +115,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_action_structuring_prompt(self, explicit_plan):
+    def construct_action_structuring_prompt_old(self, explicit_plan):
         system_message = SystemMessage(content="""
         You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
 
@@ -143,6 +142,38 @@ class PromptEngineer:
 
         user_message = HumanMessage(
             content=f"Explicitly convert this text plan into structured JSON:\n\n{explicit_plan}")
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+    def construct_action_structuring_prompt(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant tasked explicitly with converting a plain-text, numbered list of task actions into structured JSON explicitly.
+    
+        FitBeat (music recommendation agent) has ONLY these explicit action keywords, strictly in the logical order they should always appear:
+        1. "Analyze": explicitly includes analyzing user prompt, interpreting emotional descriptions, converting them explicitly into numeric audio parameters.
+        2. "Filter": explicitly includes filtering the dataset using numeric audio parameters.
+        3. "Retrieve": explicitly includes retrieving audio tracks from YouTube.
+        4. "Convert": explicitly includes converting retrieved tracks explicitly into mp3 format.
+        5. "Summarize": explicitly includes summarizing results clearly.
+    
+        You must explicitly analyze each provided numbered action carefully, mapping explicitly each action clearly to ONE keyword above, while strictly maintaining their logical order.
+    
+        Explicit clarification:
+        - Converting emotional descriptions explicitly maps ONLY to "Analyze".
+        - Filtering tracks explicitly comes AFTER "Analyze".
+        - Retrieval and Conversion clearly and explicitly follow filtering.
+        - Summarizing explicitly comes last.
+    
+        Always explicitly ensure your structured actions strictly follow the logical order clearly listed above.
+    
+        Explicit JSON format you must return clearly:
+        {
+          "actions": ["Analyze", "Filter", "Retrieve", "Convert", "Summarize"]
+        }
+    
+        No additional explanation explicitly. Respond ONLY explicitly with valid JSON.
+        """)
+
+        user_message = HumanMessage(content=f"Explicitly convert this text plan into structured JSON:\n\n{explicit_plan}")
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 

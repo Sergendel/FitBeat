@@ -1,8 +1,5 @@
-conda create -n fitbeat_env python=3.11 -y
-conda activate firbeat_env
 
-pip install openai python-dotenv
-pip install langchain faiss-cpu sentence-transformers fastapi uvicorn
+kaggle dataset link : https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset
 
-
- find . -not -path '*/\.*' | sed -e 's/[^-][^\/]*\//|   /g' -e 's/| *\([^| ]\)/|-- \1/' > structure.txt
+print project structure
+find . -not -path '*/\.*' | sed -e 's/[^-][^\/]*\//|   /g' -e 's/| *\([^| ]\)/|-- \1/' > structure.txt

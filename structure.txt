@@ -1,6 +1,5 @@
 .
 |-- audio
-|
 |-- bin
 |   |-- ffmpeg.exe
 |   |-- ffplay.exe
@@ -20,6 +19,8 @@
 |   |-- extract_base.py
 |   |-- extract_file.py
 |-- project_setup and commands.txt
+|-- README.md
+|-- requirements.txt
 |-- src
 |   |-- explicit_filtering_logic.py
 |   |-- llm_executor.py
@@ -27,7 +28,5 @@
 |   |-- output_parser.py
 |   |-- prompt_engineer.py
 |   |-- track_downloader.py
-|
 |-- structure.txt
-|-- __pycache__
-|   |-- config.cpython-311.pyc
+

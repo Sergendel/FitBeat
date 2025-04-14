@@ -39,6 +39,30 @@ class Orchestrator:
         params, folder_name = self.parser.parse_response(llm_response)
         return params, folder_name
 
+    def analyze_user_request_with_memory(self, user_prompt):
+
+        # explicitly retrieve previous user prompts from memory explicitly
+        previous_messages = self.llm_executor.memory.chat_memory.messages
+        if previous_messages:
+            # explicitly get last user prompt clearly
+            last_user_message = next(
+                (m.content for m in reversed(previous_messages) if m.type == 'human'), None)
+            combined_prompt = (
+                f"Previously, the user requested: '{last_user_message}'. "
+                f"Now, the user requests: '{user_prompt}'. "
+                f"Explicitly generate numeric audio parameters suitable explicitly for this new, combined request."
+            )
+            print(f'\nAnalyzing combined user prompt explicitly (with memory context):\n"{combined_prompt}"\n')
+        else:
+            combined_prompt = user_prompt  # first interaction explicitly
+
+        print(f'\nAnalyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
+
+        prompt_template = self.prompt_engineer.construct_prompt(combined_prompt)
+        messages = prompt_template.format_messages(user_prompt=combined_prompt)
+        llm_response = self.llm_executor.execute(messages)
+        params, folder_name = self.parser.parse_response(llm_response)
+        return params, folder_name
 
     def search_for_tracks(self, params, folder_name, num_tracks=10):
 
@@ -195,10 +219,21 @@ if __name__ == "__main__":
     # user_prompt = "music tracks for dancing party for 50+ years old "
     # orchestrator.run_agent(user_prompt, num_tracks=10)
 
-
-    # planning
-    user_prompt = "music tracks suitable for studying "
+    #
+    # planning, single call
+    user_prompt = "music tracks suitable for dancing"
     orchestrator.run_planning_agent( user_prompt, num_tracks=10)
+
+
+
+    # # test memory:
+    # user_prompt_1 = "music tracks suitable for dancing"
+    # orchestrator.run_planning_agent(user_prompt_1, num_tracks=10)
+    #
+    # # Second prompt explicitly tests memory explicitly
+    # user_prompt_2 = "Now give me something slower and more relaxing."
+    # orchestrator.run_planning_agent(user_prompt_2, num_tracks=10)
+
 
 
     # user_prompt = (
