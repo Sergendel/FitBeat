@@ -47,28 +47,51 @@ Finally, FitBeat downloads the highest-ranked tracks from YouTube and converts t
 
 ```
 FitBeat
-├── audio/
-│   └── downloaded_tracks/
-├── bin/
-│   ├── ffmpeg.exe
-│   ├── ffplay.exe
-│   └── ffprobe.exe
-├── corpus/
-│   ├── embeddings/
-│   └── genius_corpus/
-├── data/
-│   └── kaggle/
-│       └── dataset.csv
-├── src/
-│   ├── filtering_logic.py
-│   ├── llm_executor.py
-│   ├── orchestrator.py
-│   ├── output_parser.py
-│   ├── prompt_engineer.py
-│   └── track_downloader.py
-├── config.py
-├── requirements.txt
-└── README.md
+.
+|-- audio
+|   |-- downloaded_tracks
+|-- bin
+|   |-- ffmpeg.exe
+|   |-- ffplay.exe
+|   |-- ffprobe.exe
+|-- config.py
+|-- corpus
+|   |-- corpus_metadata.csv
+|   |-- create_basic_corpus.py
+|   |-- embeddings
+|   |   |-- generate_embeddings.py
+|   |   |-- genius_corpus_db
+|   |   |   |-- 458a7863-6841-4373-a953-e6d7a93a6c88
+|   |   |   |   |-- data_level0.bin
+|   |   |   |   |-- header.bin
+|   |   |   |   |-- length.bin
+|   |   |   |   |-- link_lists.bin
+|   |   |   |-- chroma.sqlite3
+|   |   |-- semantic_retrieval.py
+|   |-- genius_corpus
+|   |-- genius_corpus_simple.py
+|-- data
+|   |-- kaggle
+|   |   |-- check_genres.py
+|   |   |-- dataset.csv
+|   |   |-- download_Kaggle_data.py
+|-- EDA
+|   |-- kaggle_eda.py
+|-- extract
+|   |-- extract_base.py
+|   |-- extract_file.py
+|-- project_setup and commands.txt
+|-- README.md
+|-- requirements.txt
+|-- src
+|   |-- filtering_logic.py
+|   |-- llm_executor.py
+|   |-- orchestrator.py
+|   |-- output_parser.py
+|   |-- prompt_engineer.py
+|   |-- track_downloader.py
+|-- structure.txt
+
 ```
 
 ---
