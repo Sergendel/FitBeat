@@ -1,6 +1,6 @@
 .
 |-- audio
-|   |-- __pycache__
+|   |-- downloaded_tracks
 |-- bin
 |   |-- ffmpeg.exe
 |   |-- ffplay.exe
@@ -9,201 +9,18 @@
 |-- corpus
 |   |-- corpus_metadata.csv
 |   |-- create_basic_corpus.py
+|   |-- embeddings
+|   |   |-- generate_embeddings.py
+|   |   |-- genius_corpus_db
+|   |   |   |-- 458a7863-6841-4373-a953-e6d7a93a6c88
+|   |   |   |   |-- data_level0.bin
+|   |   |   |   |-- header.bin
+|   |   |   |   |-- length.bin
+|   |   |   |   |-- link_lists.bin
+|   |   |   |-- chroma.sqlite3
+|   |   |-- semantic_retrieval.py
 |   |-- genius_corpus
 |   |   |-- 3030 - Refém.txt
-|   |   |-- ACE COLLECTION - モノクロシティ.txt
-|   |   |-- Adam Freeland - We Want Your Soul.txt
-|   |   |-- Afrocidade - Eu Vou no Gueto.txt
-|   |   |-- Afrocidade - Topo do Mundo.txt
-|   |   |-- Alinka - Glimmer.txt
-|   |   |-- Amb - Still Alive.txt
-|   |   |-- Armandinho - Eu Sou do Mar.txt
-|   |   |-- Audio Bullys - The Future Belongs to Us.txt
-|   |   |-- Audio Bullys - We Don't Care.txt
-|   |   |-- Bachman-Turner Overdrive - Takin' Care Of Business.txt
-|   |   |-- BaianaSystem - Cabeça de Papel.txt
-|   |   |-- BaianaSystem - Catraca.txt
-|   |   |-- BaianaSystem - CertoPeloCertoh.txt
-|   |   |-- BaianaSystem - Corneteiro Luís.txt
-|   |   |-- BaianaSystem - Pachamama.txt
-|   |   |-- BaianaSystem - Reza Forte.txt
-|   |   |-- BaianaSystem - Saci (Remix).txt
-|   |   |-- BaianaSystem - Terapia.txt
-|   |   |-- BaianaSystem - Tubarão.txt
-|   |   |-- Bandalos Chinos - Vámonos De Viaje.txt
-|   |   |-- Bersuit Vergarabat - Sencillamente.txt
-|   |   |-- BK - Julius.txt
-|   |   |-- Black Alien - Mister Niterói.txt
-|   |   |-- Büyük Ev Ablukada - BENİM KAFAM SİKTİRMİŞ GİTMİŞ.txt
-|   |   |-- Calle 13 - Tal Para Cual.txt
-|   |   |-- Calle 13 - Uiyi Guaye.txt
-|   |   |-- Caê - Bim-Bim-Bim.txt
-|   |   |-- Charlie Brown Jr. - Pontes Indestrutíveis.txt
-|   |   |-- Charlie Brown Jr. - Quinta-Feira.txt
-|   |   |-- Chatham County Line - Let It Rock.txt
-|   |   |-- Cookiee Kawaii - Violin.txt
-|   |   |-- Criolo - Boca Fofa.txt
-|   |   |-- Criolo - Chocolate.txt
-|   |   |-- Criolo - Demorô.txt
-|   |   |-- Criolo - Fellini.txt
-|   |   |-- Criolo - Me Dê Motivo.txt
-|   |   |-- Criolo - Menino Mimado.txt
-|   |   |-- Criolo - Samba Sambei (Dub Mix).txt
-|   |   |-- Criolo - Samba Sambei.txt
-|   |   |-- Deekline - Fire.txt
-|   |   |-- DJ Fixx - STARS.txt
-|   |   |-- Doblecero - Rap de Buda.txt
-|   |   |-- Don L - bingo.txt
-|   |   |-- Don L - Enquanto Acaba.txt
-|   |   |-- Dub Pistols - Bang Bang.txt
-|   |   |-- Dub Pistols - Cyclone.txt
-|   |   |-- Duckwrth - Start a Riot.txt
-|   |   |-- Duffy - Mercy.txt
-|   |   |-- Eason Chan - 冷雨 - Live at EasON AIR.txt
-|   |   |-- Eben - Victory.txt
-|   |   |-- Ed Solo - Life Gets Better.txt
-|   |   |-- Empire of the Sun - Walking On A Dream.txt
-|   |   |-- ENHYPEN - Go Big or Go Home.txt
-|   |   |-- ENHYPEN - Polaroid Love.txt
-|   |   |-- Eric Hutchinson - Outside Villanova.txt
-|   |   |-- Eve - Kokoroyohou.txt
-|   |   |-- Evil Nine - Devil Stuff.txt
-|   |   |-- Fabio Brazza - Pangeia.txt
-|   |   |-- Felix Da Housecat - Like Something for Porno.txt
-|   |   |-- Felix Da Housecat - Nina.txt
-|   |   |-- Felix Da Housecat - Rocket Ride - Soulwax Rock It Right Remix.txt
-|   |   |-- Felix Da Housecat - Silver Screen Shower Scene - Chuckie & Silvio Ecomo Dirty Acid Remix.txt
-|   |   |-- Fireside Collective - Movin' on Down That Line.txt
-|   |   |-- Fitz and The Tantrums - Sway.txt
-|   |   |-- Frankie Knuckles - Godfather.txt
-|   |   |-- Freestylers - Drop the Boom.txt
-|   |   |-- Freestylers - Get A Life.txt
-|   |   |-- Freestylers - I Am.txt
-|   |   |-- Freestylers - Ruffneck.txt
-|   |   |-- Gen Hoshino - I Wanna Be Your Ghost (feat. Ghosts).txt
-|   |   |-- Gondwana - Felicidad.txt
-|   |   |-- Gorillaz - Feel Good Inc..txt
-|   |   |-- Gorillaz - The Valley of the Pagans.txt
-|   |   |-- Grasshopper - 半點心.txt
-|   |   |-- Guau - Coffee.txt
-|   |   |-- Haikaiss - Uma Noite a Toa.txt
-|   |   |-- HAWK. - Beggin' - Remix.txt
-|   |   |-- J Prince - Blood.txt
-|   |   |-- James Hunter - The Hard Way.txt
-|   |   |-- Joe Smooth - Promised Land.txt
-|   |   |-- Johnny Kidd & The Pirates - Shakin' All Over.txt
-|   |   |-- Jorge Drexler - Uno.txt
-|   |   |-- JPEGMAFIA - ROUGH 7.txt
-|   |   |-- JW - Feel The Bass.txt
-|   |   |-- Kid Abelha - Lágrimas e chuva.txt
-|   |   |-- Kiko Dinucci e Bando Afro Macarrônico - Rainha das Cabeças.txt
-|   |   |-- La Mosca Tse-Tse - Baila Para Mi.txt
-|   |   |-- La Verbena Popular - Hiereme.txt
-|   |   |-- Lara George - Dansaki.txt
-|   |   |-- Laura Jane Grace - Day Old Coffee.txt
-|   |   |-- LCD Soundsystem - Daft Punk Is Playing at My House.txt
-|   |   |-- Liu - Ai Papi.txt
-|   |   |-- Los Amigos Invisibles - All Day Today.txt
-|   |   |-- Los Amigos Invisibles - El Baile Del Sobón.txt
-|   |   |-- Los Amigos Invisibles - Groupie.txt
-|   |   |-- Los Amigos Invisibles - Invisible Love.txt
-|   |   |-- Los Amigos Invisibles - Mi Linda.txt
-|   |   |-- Los Amigos Invisibles - Mostro.txt
-|   |   |-- Los Amigos Invisibles - Sex Appeal.txt
-|   |   |-- Los Enanitos Verdes - Lamento Boliviano.txt
-|   |   |-- Los Piojos - El Balneario de los Doctores Crotos.txt
-|   |   |-- Los Prisioneros - Amiga Mía.txt
-|   |   |-- lovelytheband - sail away.txt
-|   |   |-- Lulu Santos - Assim Caminha a Humanidade.txt
-|   |   |-- Major RD - 60K - Remix.txt
-|   |   |-- Marc Broussard - Rocksteady.txt
-|   |   |-- MARINA - Oh No!.txt
-|   |   |-- Marshall Jefferson - Move Your Body.txt
-|   |   |-- Mato Seco - Caminho da Luz.txt
-|   |   |-- Moliy - Hard.txt
-|   |   |-- my little airport - 奇人的離職.txt
-|   |   |-- my little airport - 馬田的心事.txt
-|   |   |-- Osibisa - Dance the Body Music.txt
-|   |   |-- Panteon Rococo - Que Pasará.txt
-|   |   |-- Paolo Nutini - New Shoes.txt
-|   |   |-- Paul Johnson - Get Get Down.txt
-|   |   |-- Peppa Pig - Birdy Birdy Woof Woof.txt
-|   |   |-- Peppa Pig - Look In A Book.txt
-|   |   |-- Peppa Pig - My Friend Peppa.txt
-|   |   |-- Peppa Pig - Peppa's Club.txt
-|   |   |-- Peppa Pig - Roller Disco.txt
-|   |   |-- Peppa Pig - Super Potato's Theme.txt
-|   |   |-- Plastilina Mosh - Aló.txt
-|   |   |-- Plastilina Mosh - Bungaloo Punta Cometa.txt
-|   |   |-- Plastilina Mosh - Human Disco Ball.txt
-|   |   |-- Plastilina Mosh - JAJAJA.txt
-|   |   |-- Plastilina Mosh - Mjlm.txt
-|   |   |-- Plastilina Mosh - Naranjada.txt
-|   |   |-- Plastilina Mosh - Toll Free.txt
-|   |   |-- Plump DJs - The Gate.txt
-|   |   |-- Propellerheads - History Repeating - Hip Length Mix.txt
-|   |   |-- Propellerheads - History Repeating - Knee Length Mix.txt
-|   |   |-- Rainbow - Since You Been Gone.txt
-|   |   |-- Raul Seixas - Aluga-Se.txt
-|   |   |-- Richard Berry - Have Love Will Travel.txt
-|   |   |-- Robert Hood - Funky Souls.txt
-|   |   |-- Roy Davis Jr. - Michael.txt
-|   |   |-- Rustage - Blood (Alucard Rap).txt
-|   |   |-- Rustage - Bounce Back (Luffy Rap).txt
-|   |   |-- Rustage - Copy (Kakashi Rap).txt
-|   |   |-- Rustage - Determination (Rock Lee Rap).txt
-|   |   |-- Rustage - Eight Gates (Might Guy Rap) [feat. DizzyEight].txt
-|   |   |-- Rustage - God Mode (Madara Rap).txt
-|   |   |-- Rustage - Gol D Roger.txt
-|   |   |-- Rustage - Legend.txt
-|   |   |-- Rustage - Pirate King.txt
-|   |   |-- Rustage - Sage Mode (Jiraiya Rap).txt
-|   |   |-- Rustage - Sasuke.txt
-|   |   |-- Rustage - Supernova.txt
-|   |   |-- Rustage - Upgrade (Cyberpunk
-|   |   |-- Rustage - Yonko.txt
-|   |   |-- Sant - 5AM.txt
-|   |   |-- Shade k - Weasley.txt
-|   |   |-- Skank - Tão Seu.txt
-|   |   |-- Skay Beilinson - Aves Migratorias.txt
-|   |   |-- Splitloop - Hot Rock Boy.txt
-|   |   |-- Suga7 - My Love.txt
-|   |   |-- T. Rex - Get It On.txt
-|   |   |-- The Black Keys - Sinister Kid.txt
-|   |   |-- The Breakfastaz - Crazy.txt
-|   |   |-- The Changcuters - Hmmm.. Sudah Kuduga.txt
-|   |   |-- The Chemical Brothers - Do It Again.txt
-|   |   |-- The Chemical Brothers - Eve Of Destruction.txt
-|   |   |-- The Chemical Brothers - Got To Keep On.txt
-|   |   |-- The Chemical Brothers - The Salmon Dance - Crookers 'Wow' Mix.txt
-|   |   |-- The Chemical Brothers - The Salmon Dance.txt
-|   |   |-- The Dynamics - Move on Up.txt
-|   |   |-- The Dynamics - Rock It.txt
-|   |   |-- The Dynamics - The Creator Has a Masterplan.txt
-|   |   |-- The Fortunes - Here Comes That Rainy Day Feeling Again.txt
-|   |   |-- The Hollies - Long Cool Woman (In a Black Dress) - 1999 Remaster.txt
-|   |   |-- The Knocks - Slow Song.txt
-|   |   |-- The Prodigy - Fire - Sunrise Version.txt
-|   |   |-- The Prodigy - Out of Space - Audio Bullys Remix.txt
-|   |   |-- The Rubber Knife Gang - Drivin' On.txt
-|   |   |-- Tihuana - Pula.txt
-|   |   |-- Tim Maia - Você E Eu, Eu E Você (Juntinhos).txt
-|   |   |-- Tim Maia - Vê se decide.txt
-|   |   |-- Timo Maas - Shifter (feat. MC Chickaboo).txt
-|   |   |-- Todd Carey - Nintendo.txt
-|   |   |-- UCLÃ - Bola de Haxixe.txt
-|   |   |-- Voilaaa - Des promesses.txt
-|   |   |-- Voilaaa - Pour la vie.txt
-|   |   |-- Voilaaa - Spies Are Watching Me.txt
-|   |   |-- Voilaaa - Tu n'as pas de voiture.txt
-|   |   |-- William Onyeabor - Let's Fall in Love.txt
-|   |   |-- Xamã - Peixes.txt
-|   |   |-- Yeah Yeah Yeahs - Heads Will Roll - A-Trak Remix.txt
-|   |   |-- Yung Buda - Digimon.txt
-|   |   |-- Yuu Miyashita - Wozwald.txt
-|   |   |-- Z.Z. Hill - Someone Else Is Steppin' In.txt
-|   |   |-- Zayde Wølf - You Do You.txt
-|   |   |-- 白銀御行(CV
 |   |-- genius_corpus_simple.py
 |-- data
 |   |-- kaggle
@@ -219,7 +36,7 @@
 |-- README.md
 |-- requirements.txt
 |-- src
-|   |-- explicit_filtering_logic.py
+|   |-- filtering_logic.py
 |   |-- llm_executor.py
 |   |-- orchestrator.py
 |   |-- output_parser.py

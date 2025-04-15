@@ -1,128 +1,135 @@
-# 🎶 FitBeat: LLM-Based Music Recommendation Agent
+# 🎧 FitBeat: LLM-Powered Music Recommendation Agent
+
+**Author:** Sergey Gendel
+
+---
 
 ## 🚀 Project Overview
 
-**FitBeat** is an intelligent music recommendation agent powered by an LLM (Large Language Model) designed explicitly for context-driven music selection. Users describe emotional or situational contexts (e.g., \"energetic music for gym workout\"), and FitBeat automatically translates these descriptions into detailed song parameters such as tempo, energy, danceability, and retrieves suitable songs from a dataset. It then downloads and converts these tracks from YouTube into mp3 format.
+**FitBeat** is an LLM-powered music recommendation agent.
 
-The goal is to demonstrate robust ML engineering skills, particularly in developing LLM-driven autonomous agents.
+FitBeat takes user prompts describing emotional or situational contexts
+ (e.g., "music for intense gym training" or "playlist for a child's birthday party") 
+ and generates playlists matching the user's requests.
+
+## 📌 How it Works
+
+### 1. Initial Track Filtering
+
+The agent first translates user prompts into numeric audio parameters, such as tempo, energy, danceability, etc. 
+It then retrieves suitable tracks from a large Kaggle dataset (`dataset.csv`),
+ containing approximately 114,000 tracks, each annotated with detailed numeric audio features
+  (danceability, energy, loudness, tempo, etc.). An initial list of candidate tracks is created after this step.
+
+### 2. Semantic Refinement using RAG (Retrieval-Augmented Generation)
+
+FitBeat refines and ranks these candidate tracks using RAG. 
+It retrieves track descriptions and lyrics from the Genius website, then uses semantic analysis to determine 
+how well each track matches the user's request emotionally and contextually. 
+After this refinement, tracks are re-ranked according to semantic relevance.
+
+### 3. Final Track Retrieval and Conversion
+
+Finally, FitBeat downloads the highest-ranked tracks from YouTube and converts them into MP3 files for convenient listening.
 
 ---
 
-## ⚙️ Key Functionalities
+## 🛠️ Tools & Resources Used
 
-- **Context Interpretation via LLM (OpenAI API)**
-- **Dataset Filtering based on audio parameters**
-- **Automatic song downloading (yt-dlp) and conversion to mp3 (ffmpeg)**
-- **Structured and modular Python codebase**
+- **OpenAI GPT API (via LangChain)**: Dynamic planning, numeric parameter extraction, semantic ranking
+- **Kaggle Dataset**: Numeric audio feature filtering
+- **YouTube (via yt-dlp & ffmpeg)**: Track downloading and conversion
+- **Genius API**: Semantic context retrieval for RAG
 
 ---
 
-## 🗂️ Project Structure
+## 🔍 Project Structure
 
 ```
-.
-├── audio
-├── bin
+FitBeat
+├── audio/
+│   └── downloaded_tracks/
+├── bin/
 │   ├── ffmpeg.exe
 │   ├── ffplay.exe
 │   └── ffprobe.exe
-├── config.py
-├── corpus
-│   ├── create_basic_corpus.py
-│   └── genius_corpus_simple.py
-├── data
-│   └── kaggle
-│       ├── check_genres.py
-│       ├── dataset.csv
-│       └── download_Kaggle_data.py
-├── EDA
-│   └── kaggle_eda.py
-├── extract
-│   ├── extract_base.py
-│   └── extract_file.py
-├── project_setup and commands.txt
-├── src
-│   ├── explicit_filtering_logic.py
+├── corpus/
+│   ├── embeddings/
+│   └── genius_corpus/
+├── data/
+│   └── kaggle/
+│       └── dataset.csv
+├── src/
+│   ├── filtering_logic.py
 │   ├── llm_executor.py
 │   ├── orchestrator.py
 │   ├── output_parser.py
 │   ├── prompt_engineer.py
 │   └── track_downloader.py
-├── structure.txt
-└── __pycache__
-    └── config.cpython-311.pyc
+├── config.py
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 🛠️ How It Works
+## ⚙️ Installation & Setup
 
-1. **LLM Prompt Engineering**: Interprets the user's description and converts it into numeric audio features.
-2. **Dataset Filtering**: Retrieves matching tracks from a Kaggle dataset based on these features.
-3. **Audio Downloading and Conversion**: Downloads selected tracks from YouTube and converts them into mp3 format.
-
----
-
-## 🔧 Setup & Installation
-
-### Requirements
-
-- Python 3.11
-- OpenAI API key and Genius API key
-
-### Installation
-
+### 📦 Dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Environment Setup
-
-Create a `.env` file in the root directory of the project with the following content:
-
+### 🔑 API Keys:
+- Create a `.env` file with the following:
 ```env
-OPENAI_API_KEY='your open ai api key'
-GENIUS_API_KEY='your genius ai api key'
+OPENAI_API_KEY='your_openai_api_key'
+GENIUS_API_KEY='your_genius_api_key'
 ```
 
-### Usage
+### 🖥️ Running the Agent:
 
 Run the orchestrator:
-
 ```bash
 python src/orchestrator.py
 ```
 
-### Example
+Modify the `orchestrator.py` main section with desired user prompts to explicitly run different scenarios.
 
+---
+
+## 📝 Examples of Usage
+
+### 📌 Example 1: Emotional/Situational Prompt
 ```python
-user_prompt = \"music tracks for dancing party for 50+ years old\"
-orchestrator.run_agent(user_prompt, num_tracks=10)
+user_prompt = "music for romantic date"
+orchestrator.run_planning_agent(user_prompt, num_tracks=20)
+```
+
+### 📌 Example 2: Direct Download Request
+```python
+prompt_simple = (
+    "I already have a list of specific songs:\n"
+    "- The Weeknd - Blinding Lights\n"
+    "- Eminem - Lose Yourself\n"
+    "- Coldplay - Adventure of a Lifetime\n\n"
+    "Just download these exact songs from YouTube, convert them to mp3, "
+    "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+)
+orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
 ```
 
 ---
 
-## 🎯 Future Enhancements
+## 💡 Future Improvements (Optional)
+- Enhanced memory/contextual planning across multiple sessions
+- Further optimization of semantic refinement
+- Additional external tools for broader capabilities (e.g., live web search)
 
-- ✅ **Explicit LLM-driven planning** (in progress)
-- ✅ **Retrieval-Augmented Generation (RAG)** for improved recommendation quality (planned)
-- ✅ Comprehensive **Unit Tests** and robust error handling (planned)
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+## 🚨 Troubleshooting
+- Verify `.env` file for correct API keys
+- Ensure `ffmpeg` binaries are correctly placed in `bin`
 
 ---
-
-## 🙌 Acknowledgments
-
-- OpenAI API
-- Kaggle Dataset
-- `yt-dlp` and `ffmpeg`
-
----
-
-Developed by Sergey Gendel. © 2024 FitBeat Project.
 

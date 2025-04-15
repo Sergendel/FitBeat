@@ -1,0 +1,16 @@
+1. My current agent explicitly provides flexible and detailed planning for various scenarios.
+   However, I've noticed some situations where an "Execution Capability Gap" arises.
+   How important is it to explicitly handle or mitigate this scenario within the scope of this assessment?
+
+2. My agent explicitly uses RAG to refine and rank the final output.
+   Is it necessary for this assessment to explicitly prove the effectiveness provided by RAG,
+   or is it sufficient to illustrate that RAG integration is implemented and functional?
+
+3.I'm currently working on integrating memory into my agent.
+  Would a simple file-based storage solution (e.g., JSON) be sufficient for demonstrating this capability in the assessment,
+  or am I expected to use more robust solutions like PostgreSQL or cloud-based storage?
+
+4. Which parts of the agent logic should be explicitly prioritized in testing?
+   Would including end-to-end tests add significant value ?
+   Should I invest in testing  variability in LLM responses issues?
+

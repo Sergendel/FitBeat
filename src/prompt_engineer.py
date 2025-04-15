@@ -115,7 +115,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_action_structuring_prompt(self, explicit_plan):
+    def construct_action_structuring_prompt_old(self, explicit_plan):
         system_message = SystemMessage(content="""
         You're an assistant tasked with converting a plain-text, numbered list of task actions into structured JSON.
     
@@ -145,6 +145,33 @@ class PromptEngineer:
         """)
 
         user_message = HumanMessage(content=f"Convert this text plan into structured JSON:\n\n{explicit_plan}")
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_action_structuring_prompt(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant converting a textual action plan into structured JSON actions for the FitBeat agent.
+
+        Available actions:
+        - "Analyze": interpret emotional descriptions into audio parameters.
+        - "Filter": filter tracks based on audio parameters.
+        - "Retrieve": retrieve tracks from YouTube.
+        - "Convert": convert retrieved tracks into mp3 format.
+        - "Summarize": summarize the final playlist.
+
+        Instructions:
+        - Include each action type AT MOST ONCE, regardless of how many times it appears in the textual plan.
+        - List actions ONLY IF they are explicitly mentioned in the provided plan.
+        - Do NOT insert, reorder, or assume any actions not explicitly stated.
+        - If multiple specific examples of the same action are listed explicitly in sequence (e.g., multiple "Retrieve" steps), collapse them into a single instance of that action.
+
+        Return ONLY a valid JSON response in the following format (no additional text or explanation):
+
+        {
+          "actions": ["Action1", "Action2", "..."]
+        }
+        """)
+        user_message = HumanMessage(content=f"Convert this explicit plan into structured JSON:\n\n{explicit_plan}")
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
@@ -180,7 +207,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([
             SystemMessage(
-                content="You're an expert music recommender ranking candidate tracks. Follow instructions exactly and explicitly."),
+                content="You're an expert music recommender ranking candidate track. Follow instructions exactly."),
             HumanMessage(content=augmented_prompt)
         ])
 

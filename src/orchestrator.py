@@ -9,6 +9,7 @@ from corpus.embeddings.semantic_retrieval import retrieve_or_add_song
 import os
 import config
 import pandas as pd
+import re
 
 load_dotenv()
 
@@ -184,16 +185,24 @@ class Orchestrator:
 
                 folder_name = refined_folder_name if refined_folder_name else folder_name
 
-
             elif action == "Retrieve":
-                if tracks is None:
-                    print("Error: Filter step missing before Retrieve.")
-                    return
 
-                if refined_folder_name is None:
-                    print("Refined folder name is None, falling back to original folder_name.")
-                    refined_folder_name = folder_name
-                self.fetch_recommended_tracks(tracks, refined_folder_name)
+                if tracks is None:
+
+                    # Special handling: explicitly provided tracks scenario
+                    print("No previous filter step found. Assuming tracks are provided by user.")
+
+                    # Example logic: explicitly parse provided tracks from user prompt (basic parsing example)
+                    tracks = self.get_user_provided_tracks(user_prompt)
+
+                    if tracks.empty:
+                        print("Error: No user provided tracks found.")
+                        return
+
+                    # Use the original folder name from the user prompt
+                    folder_name = "user_provided_tracks"
+
+                self.fetch_recommended_tracks(tracks, folder_name)
 
             elif action == "Convert":
                 print("Conversion already performed during 'Retrieve' step. Skipping redundant execution.")
@@ -209,6 +218,46 @@ class Orchestrator:
                 return
 
         print("\nAll actions executed successfully!")
+
+    def get_user_provided_tracks(self, user_prompt):
+        """
+        Parses provided tracks from the user prompt.
+        Example implementation—user must list tracks as "Artist - Song Name".
+        """
+
+        lines = user_prompt.strip().split("\n")
+        tracks = []
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("-"):
+                line_content = line[1:].strip()  # remove leading '-'
+                if " - " in line_content:
+                    artist, title = line_content.split(" - ", 1)
+                    tracks.append({
+                        'artists': artist.strip(),
+                        'track_name': title.strip(),
+                        'popularity': None,
+                        'tempo': None,
+                        'explicit': None,
+                        'danceability': None,
+                        'energy': None,
+                        'loudness': None,
+                        'mode': None,
+                        'speechiness': None,
+                        'acousticness': None,
+                        'instrumentalness': None,
+                        'liveness': None,
+                        'valence': None,
+                        'time_signature': None,
+                        'track_genre': None
+                    })
+
+        if not tracks:
+            print("No explicitly provided tracks found in user prompt.")
+
+        return pd.DataFrame(tracks)
+
 
     def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
 
@@ -294,10 +343,38 @@ if __name__ == "__main__":
 
     # planning, single call
     user_prompt = "playlist for birthday party of my 10 years old son"
-    user_prompt = "music for intense gym training"
+    user_prompt = "music for romantic date"
     orchestrator.run_planning_agent( user_prompt, num_tracks = 20)
 
-    # # planning, test different scenarios
+    # Scenario 2: Simple direct download request (retrieval, conversion, summarization only)
+    prompt_simple = (
+    "I already have a list of specific songs:\n"
+    "- The Weeknd - Blinding Lights\n"
+    "- Eminem - Lose Yourself\n"
+    "- Coldplay - Adventure of a Lifetime\n\n"
+    "Just download these exact songs from YouTube, convert them to mp3, "
+    "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+)
+    orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+
+    # # Scenario 3: Simple direct download request (retrieval, conversion, summarization only)
+    # prompt_simple = (
+    #     "I already have a list of specific songs:\n"
+    #     "- The Weeknd - Blinding Lights\n"
+    #     "- Eminem - Lose Yourself\n"
+    #     "- Coldplay - Adventure of a Lifetime\n\n"
+    #     "I want you to find similar songs for me from the dataset,  and create playable playlist  "
+    # )
+    # orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+
+
+
+
+
+
+
+
+# # planning, test different scenarios
     # user_prompt = (
     #     "I already have a list of songs. I want playlist with similar, but other, songs "
     #     "Can you do it for me ? I just need track names, not the playable files"

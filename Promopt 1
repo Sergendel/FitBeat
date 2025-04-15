@@ -1,0 +1,1393 @@
+Hello!
+I'm currently working on a showcase project called FitBeat, designed specifically for an ML Engineer job interview.
+
+My task is to complete a coding assignment detailed in the file "AI Engineer Interview Questions and Coding Assignment.pdf".
+
+Project Overview:
+FitBeat is an LLM-powered music recommendation agent.
+It takes user prompts describing emotional or situational contexts
+(e.g., "music for intense gym training" or "playlist for a child's birthday party")
+and generates a playlist matching the user's request.
+
+How it works:
+1. Initial Track Filtering:
+The agent first translates user prompts into numeric audio parameters, such as tempo, energy, danceability, etc.
+Then it retrieves suitable tracks from a large Kaggle dataset (dataset.csv), containing approximately 114,000 tracks,
+each annotated with detailed numeric audio features (danceability, energy, loudness, tempo, etc.).
+ At this point, an initial list of candidate tracks is created.
+
+2. Semantic Refinement using RAG (Retrieval-Augmented Generation):
+FitBeat then refines and ranks these candidate tracks using RAG. It retrieves track descriptions and lyrics from the
+Genius website, using semantic analysis to determine how well each track matches the user's request
+ emotionally and contextually.
+ After this refinement, the tracks are re-ranked according to semantic relevance.
+
+3. Final Track Retrieval and Conversion:
+Finally, FitBeat downloads the highest-ranked tracks from YouTube and converts them into MP3 files for convenient listening.
+
+I'd appreciate your assistance as I continue developing this project.
+
+Progress done so far:
+
+Initial Numeric Filtering:
+
+User prompts translated explicitly into numeric audio parameters (tempo, energy, danceability, etc.).
+
+Explicit filtering using a Kaggle dataset (~114,000 tracks with numeric audio features).
+
+Semantic Refinement (RAG Implementation):
+
+Tracks refined explicitly using Retrieval-Augmented Generation (RAG).
+
+Retrieves descriptions and lyrics from the Genius website to rank tracks semantically and emotionally.
+
+Final Retrieval and Conversion:
+
+Explicit downloading of ranked tracks from YouTube.
+
+Conversion of tracks into MP3 format.
+
+
+
+below are the project structure and actual files of the project.
+Please make a review of the project, how it match the assignment goals and requirements.
+
+
+project structure:
+.
+|-- audio
+|   |-- downloaded_tracks
+|-- bin
+|   |-- ffmpeg.exe
+|   |-- ffplay.exe
+|   |-- ffprobe.exe
+|-- config.py
+|-- corpus
+|   |-- corpus_metadata.csv
+|   |-- create_basic_corpus.py
+|   |-- embeddings
+|   |   |-- generate_embeddings.py
+|   |   |-- genius_corpus_db
+|   |   |   |-- 458a7863-6841-4373-a953-e6d7a93a6c88
+|   |   |   |   |-- data_level0.bin
+|   |   |   |   |-- header.bin
+|   |   |   |   |-- length.bin
+|   |   |   |   |-- link_lists.bin
+|   |   |   |-- chroma.sqlite3
+|   |   |-- semantic_retrieval.py
+|   |-- genius_corpus
+|   |   |-- 3030 - Refém.txt
+|   |-- genius_corpus_simple.py
+|-- data
+|   |-- kaggle
+|   |   |-- check_genres.py
+|   |   |-- dataset.csv
+|   |   |-- download_Kaggle_data.py
+|-- EDA
+|   |-- kaggle_eda.py
+|-- extract
+|   |-- extract_base.py
+|   |-- extract_file.py
+|-- project_setup and commands.txt
+|-- README.md
+|-- requirements.txt
+|-- src
+|   |-- filtering_logic.py
+|   |-- llm_executor.py
+|   |-- orchestrator.py
+|   |-- output_parser.py
+|   |-- prompt_engineer.py
+|   |-- track_downloader.py
+|-- structure.txt
+
+python files:
+
+generate_embeddings.py:
+import sys
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
+import chromadb
+import pandas as pd
+
+# Adjust sys.path
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+import config
+
+# Initialize the embedding model
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Load metadata
+df = pd.read_csv(config.CORPUS_METADATA_PATH)
+
+# Initialize ChromaDB
+chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+collection = chroma_client.get_or_create_collection(name="genius_embeddings")
+
+# Generate embeddings for each song
+for idx, row in df.iterrows():
+    filepath = config.CORPUS_DIR / row['filename']
+
+    with open(filepath, 'r', encoding='utf-8') as file:
+        song_text = file.read()
+
+    embedding = model.encode(song_text).tolist()
+
+    collection.add(
+        ids=[row['filename']],
+        embeddings=[embedding],
+        documents=[song_text],
+        metadatas=[{
+            "artist": row["artist"],
+            "title": row["title"],
+            "genre": row["genre"]
+        }]
+    )
+
+    print(f"Embedding generated for: {row['filename']}")
+
+print("All embeddings generated and stored successfully!")
+
+
+semantic_retrival.py:
+import sys
+from pathlib import Path
+import chromadb
+from sentence_transformers import SentenceTransformer
+import lyricsgenius
+import os
+from dotenv import load_dotenv
+
+# Load environment
+load_dotenv()
+
+# Import config
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+import config
+
+# Initialize embedding model
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Connect to ChromaDB
+chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+collection = chroma_client.get_or_create_collection(name="genius_embeddings")
+
+# Initialize Genius API
+genius = lyricsgenius.Genius(os.getenv("GENIUS_API_KEY"), timeout=15)
+
+
+def retrieve_similar_songs(query, top_k=5):
+    query_embedding = model.encode(query).tolist()
+
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k
+    )
+    return results['documents'][0], results['metadatas'][0]
+
+
+# On-the-fly embedding
+def retrieve_or_add_song(artist, title):
+    song_id = f"{artist} - {title}.txt"
+    existing = collection.get(ids=[song_id])
+
+    if existing['ids']:
+        print("Song found in corpus.")
+        return existing['documents'][0]
+
+    print("Song not found. Fetching dynamically from Genius API...")
+    song = genius.search_song(title, artist)
+
+    if song:
+        song_text = song.lyrics
+
+        embedding = model.encode(song_text).tolist()
+        collection.add(
+            ids=[song_id],
+            embeddings=[embedding],
+            documents=[song_text],
+            metadatas=[{"artist": artist, "title": title}]
+        )
+
+        print("Added dynamically to corpus!")
+        return song_text
+    else:
+        print(f"Genius doesn't have '{title}' by {artist}. Falling back to numeric filtering.")
+        return None
+
+if __name__ == "__main__":
+    query = "calm instrumental piano music"
+    documents, metadata = retrieve_similar_songs(query, top_k=5)
+
+    print("Retrieved Top Songs:")
+    for doc, meta in zip(documents, metadata):
+        print(f"- {meta['artist']} - {meta['title']} ({meta['genre']})")
+
+    # Retrieve on-the-fly:
+    artist = "Coldplay"
+    title = "Adventure of a Lifetime"
+
+    doc = retrieve_or_add_song(artist, title)
+    if doc:
+        print(f"Retrieved song : {title}")
+
+
+
+create_basic_corpus.py:
+import os
+import pandas as pd
+import lyricsgenius
+import requests
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import config
+from pathlib import Path
+
+
+# Load environment variables
+load_dotenv()
+genius = lyricsgenius.Genius(os.getenv('GENIUS_API_KEY'), timeout=15)
+
+# kaggle dataset path
+DATASET_PATH = config.FILE_PATH
+
+# folders to store corpus and metadata (list of songs in the corpus)
+CORPUS_DIR = config.CORPUS_DIR
+CORPUS_METADATA_PATH = config.CORPUS_METADATA_PATH
+
+# create folder
+os.makedirs(CORPUS_DIR, exist_ok=True)
+
+
+def get_song_description(song_url):
+    response = requests.get(song_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    description_div = soup.find('div', class_=lambda x: x and x.startswith('RichText__Container'))
+    return description_div.get_text(separator='\n', strip=True) if description_div else "No description found."
+
+
+def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, valence=None, track_genre=None,
+                        max_songs=100):
+    df = pd.read_csv(DATASET_PATH)
+
+    # Explicitly build filters
+    filters = []
+    if tempo is not None:
+        filters.append(df['tempo'] > tempo)
+    if danceability is not None:
+        filters.append(df['danceability'] > danceability)
+    if energy is not None:
+        filters.append(df['energy'] > energy)
+    if mode is not None:
+        filters.append(df['mode'] == mode)
+    if valence is not None:
+        filters.append(df['valence'] > valence)
+    if track_genre is not None:
+        filters.append(df['track_genre'].str.lower() == track_genre.strip().lower())
+
+    # Apply filters explicitly
+    if filters:
+        filtered_df = df
+        for f in filters:
+            filtered_df = filtered_df[f]
+    else:
+        filtered_df = df  # if no filter, use full dataset clearly
+
+    filtered_df = filtered_df.drop_duplicates(subset=['track_name', 'artists']).head(max_songs)
+
+    metadata_records = []
+
+    for i, (idx, track) in enumerate(filtered_df.iterrows()):
+        title = track['track_name'].strip()
+        artist = track['artists'].split(';')[0].strip()
+        print(f"Processing: {artist} - {title}")
+
+        try:
+            song = genius.search_song(title, artist)
+            if song:
+                filename = f"{artist} - {title}.txt"
+                file_path = os.path.join(CORPUS_DIR, filename)
+
+                description = get_song_description(song.url)
+
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(f"Title: {song.title}\n")
+                    f.write(f"Artist: {song.artist}\n")
+                    f.write(f"Album: {song.album}\n\n")
+                    f.write(f"Description:\n{description}\n\n")
+                    f.write(f"Lyrics:\n{song.lyrics}\n")
+
+                print(f"Track {i} Saved: {filename}")
+
+                metadata_records.append({
+                    'artist': artist,
+                    'title': title,
+                    'filename': filename,
+                    'tempo': track['tempo'],
+                    'energy': track['energy'],
+                    'danceability': track['danceability'],
+                    'mode': track['mode'],
+                    'valence': track['valence'],
+                    'genre': track['track_genre']
+                })
+
+            else:
+                print(f"Not found on Genius: {artist} - {title}")
+
+        except Exception as e:
+            print(f"Error processing {artist} - {title}: {e}")
+
+    metadata_df = pd.DataFrame(metadata_records)
+    metadata_df.to_csv(METADATA_FILE, index=False, encoding='utf-8')
+
+    print(f"\nCorpus creation complete. {len(metadata_records)} songs saved.")
+    print(f"Metadata explicitly saved in '{METADATA_FILE}'.")
+
+
+# Explicitly call your function with example parameters:
+if __name__ == "__main__":
+    create_basic_corpus(
+        tempo=120,
+        danceability=0.7,
+        energy=0.6,
+        mode=None,
+        valence=0.6,
+        track_genre=None,
+        max_songs=500
+    )
+
+
+extract_file.py:
+from extract.extract_base import ExtractBase
+from pandas import read_csv, to_numeric
+import config
+from pathlib import Path
+import config
+
+class ExtractFile(ExtractBase):
+
+    def __init__(self):
+        # set path
+        self.file_path = config.FILE_PATH
+
+    def load_data(self):
+        # Load dataset and ensure 'tempo' is numeric
+        df = read_csv(self.file_path)
+        df['tempo'] = to_numeric(df['tempo'], errors='coerce')
+        df.dropna(subset=['tempo'], inplace=True)  # remove invalid entries if any
+        return df
+
+if __name__ == "__main__":
+
+    # set extractor
+    extractor = ExtractFile()
+
+    # extract
+    data = extractor.load_data()
+    print(data.head())
+
+    # Show basic dataset info
+    print(data.head())
+    print(data.info())
+
+    # Check BPM distribution quickly
+    print(data['tempo'].describe())
+
+    # Check genres quickly (optional)
+    print(data['track_genre'].value_counts().head(10))
+
+
+filtering_logic.py:
+import pandas as pd
+
+def filtering_logic(params_explicit, dataset, top_n=10):
+    margins = {
+        'tempo': 10,
+        'energy': 0.05,
+        'danceability': 0.1,
+        'valence': 0.1,
+        'loudness': 2,
+        'speechiness': 0.05,
+        'instrumentalness': 0.05,
+        'acousticness': 0.05,
+        'liveness': 0.05
+    }
+
+    attempt = 0
+    max_attempts = 10
+
+    filtered_tracks = pd.DataFrame()
+
+    while attempt < max_attempts:
+        conditions = []
+
+        for feature in ['tempo', 'energy', 'danceability', 'valence', 'loudness', 'speechiness', 'instrumentalness', 'acousticness', 'liveness']:
+            if feature in params_explicit and params_explicit[feature] is not None:
+                conditions.append(dataset[feature].between(*params_explicit[feature]))
+
+        if params_explicit.get('track_genre'):
+            conditions.append(dataset['track_genre'].isin(params_explicit['track_genre']))
+
+        if conditions:
+            combined_conditions = pd.concat(conditions, axis=1).all(axis=1)
+            filtered_tracks = dataset.loc[combined_conditions].drop_duplicates(subset=['track_name', 'artists']).sort_values(by='popularity', ascending=False)
+
+        if len(filtered_tracks) >= top_n:
+            break
+
+        print(f"Only found {len(filtered_tracks)} tracks, relaxing parameters... (Attempt {attempt + 1})")
+
+        # Relaxing parameters explicitly
+        for param, margin in margins.items():
+            if param in params_explicit and params_explicit[param] is not None:
+                params_explicit[param][0] = max(0 if param != 'loudness' else -60, params_explicit[param][0] - margin)
+                params_explicit[param][1] = min(1 if param != 'tempo' and param != 'loudness' else (200 if param == 'tempo' else 0), params_explicit[param][1] + margin)
+
+        attempt += 1
+
+    if filtered_tracks.empty:
+        print("No matching tracks found after multiple attempts.")
+
+    return filtered_tracks.head(top_n)
+
+
+llm_executor.py:
+import os
+import json
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# for memory
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationChain
+from langchain_openai import ChatOpenAI
+
+class LLMExecutor:
+    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
+        load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key is None:
+            raise ValueError("OPENAI_API_KEY is not set in your .env file")
+
+        self.client = OpenAI(api_key=api_key)
+        self.model_name = model_name
+        self.temperature = temperature
+
+    def execute(self, messages):
+        try:
+            openai_messages = [
+                {
+                    "role": "user" if msg.type == "human" else msg.type,
+                    "content": msg.content
+                } for msg in messages
+            ]
+
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=openai_messages,
+                temperature=self.temperature
+            )
+
+            content = response.choices[0].message.content.strip()
+
+            # Automatically detect JSON or text
+            try:
+                result = json.loads(content)
+                return result  # JSON parsed successfully
+            except json.JSONDecodeError:
+                # Not JSON, return raw text
+                return content
+
+        except Exception as e:
+            print(f"Error during LLM API call: {e}")
+            return None
+
+
+# not in use meanwhile
+class LLMExecutor_with_memory:
+    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
+        load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key is None:
+            raise ValueError("OPENAI_API_KEY not set in .env file")
+
+        self.llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=temperature)
+        self.memory = ConversationBufferMemory()
+
+        # Integrate memory with ConversationChain
+        self.chain = ConversationChain(llm=self.llm, memory=self.memory)
+
+    def execute(self, messages):
+        """
+        Execute messages with explicit memory context.
+        """
+        # Convert LangChain message format to a single prompt explicitly
+        prompt_text = "\n".join([msg.content for msg in messages])
+        response = self.chain.run(prompt_text)
+
+        # Attempt JSON parsing explicitly
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            return response  # return raw text if JSON fails
+
+
+
+orchestrator.py:
+from dotenv import load_dotenv
+from prompt_engineer import PromptEngineer
+from llm_executor import LLMExecutor
+from output_parser import OutputParser
+from track_downloader import TrackDownloader
+from extract.extract_file import ExtractFile
+from src.filtering_logic import filtering_logic
+from corpus.embeddings.semantic_retrieval import retrieve_or_add_song
+import os
+import config
+import pandas as pd
+import re
+
+load_dotenv()
+
+class Orchestrator:
+    def __init__(self):
+        self.prompt_engineer = PromptEngineer()
+        self.llm_executor = LLMExecutor()
+        self.parser = OutputParser()
+        self.downloader = TrackDownloader()
+        extractor = ExtractFile()
+        self.dataset = extractor.load_data()
+
+        # Action mapping
+        self.action_mapping = {
+            "Analyze": self.analyze_user_request,
+            "Filter": self.search_for_tracks,
+            "Retrieve": self.fetch_recommended_tracks,
+            "Convert": self.fetch_recommended_tracks,  # downloading implicitly includes converting
+            "Summarize": self.summarize_results
+        }
+
+    def analyze_user_request(self, user_prompt):
+        print(f'\nAnalyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
+        prompt_template = self.prompt_engineer.construct_prompt(user_prompt)
+        messages = prompt_template.format_messages(user_prompt=user_prompt)
+        llm_response = self.llm_executor.execute(messages)
+
+        if llm_response is None:
+            raise ValueError("LLM returned None or invalid response during analyze step.")
+
+        params, folder_name = self.parser.parse_response(llm_response)
+        return params, folder_name
+
+    def analyze_user_request_with_memory(self, user_prompt):
+
+        # Retrieve previous user prompts from memory
+        previous_messages = self.llm_executor.memory.chat_memory.messages
+        if previous_messages:
+            # Get last user prompt
+            last_user_message = next(
+                (m.content for m in reversed(previous_messages) if m.type == 'human'), None)
+            combined_prompt = (
+                f"Previously, the user requested: '{last_user_message}'. "
+                f"Now, the user requests: '{user_prompt}'. "
+                f"Generate numeric audio parameters suitable for this new, combined request."
+            )
+            print(f'\nAnalyzing combined user prompt (with memory context):\n"{combined_prompt}"\n')
+        else:
+            combined_prompt = user_prompt
+
+        print(f'\nAnalyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
+
+        prompt_template = self.prompt_engineer.construct_prompt(combined_prompt)
+        messages = prompt_template.format_messages(user_prompt=combined_prompt)
+        llm_response = self.llm_executor.execute(messages)
+        params, folder_name = self.parser.parse_response(llm_response)
+        return params, folder_name
+
+    def search_for_tracks(self, params, folder_name, num_tracks=10):
+
+        filtered_tracks = filtering_logic(params, self.dataset, num_tracks)
+
+        if filtered_tracks.empty:
+            print("No tracks match criteria.")
+            return filtered_tracks
+
+        print("\nParameters provided by LLM for tracks filtering:")
+        for key, value in params.items():
+            print(f"  - {key.capitalize()}: {value}")
+
+        print("\nSearching Kaggle dataset for matching tracks...")
+        unique_tracks_count = filtered_tracks[['track_name', 'artists']].drop_duplicates().shape[0]
+
+        print(f"\n {unique_tracks_count} Selected Tracks :")
+        for idx, row in filtered_tracks.iterrows():
+            print(f"    -{idx} {row['track_name']} – {row['artists']}")
+            # print(f"   • Tempo: {row['tempo']}")
+            # print(f"   • Energy: {row['energy']}")
+            # print(f"   • Danceability: {row['danceability']}")
+            # print(f"   • Valence: {row['valence']}")
+            # print(f"   • Loudness: {row['loudness']} dB")
+            # print(f"   • Speechiness: {row['speechiness']}")
+            # print(f"   • Instrumentalness: {row['instrumentalness']}")
+            # print(f"   • Acousticness: {row['acousticness']}")
+            # print(f"   • Liveness: {row['liveness']}")
+            # print(f"   • Genre: {row['track_genre']}")
+            # print(f"   • Popularity: {row['popularity']}")
+
+        print(
+            f"\nThe tracks will be stored in the folder '{folder_name}'.\n")
+
+        return filtered_tracks
+
+
+    def fetch_recommended_tracks(self, tracks, folder_name):
+        folder_path = os.path.join(config.TRACKS_DIR, folder_name)
+        os.makedirs(folder_path, exist_ok=True)
+
+        print(f"Downloading recommended tracks explicitly and converting to MP3 explicitly.\n"
+              f"Saving explicitly playlist to folder explicitly: '{folder_path}'\n")
+
+        for idx, track in enumerate(tracks.itertuples()):
+            track_number = idx + 1
+            self.downloader.download_and_convert(
+                track.track_name,
+                track.artists,
+                folder_path,
+                track_index=track_number
+            )
+
+    def summarize_results(self, tracks):
+        print("\nFinal Recommendations:")
+        for track_number, (_, row) in enumerate(tracks.iterrows()):
+            print(f"{track_number}. {row['track_name']} by {row['artists']} | "
+                  f"    \n   Popularity: {row['popularity']} | "
+                  f"Tempo: {row['tempo']} BPM | "
+                  f"Explicit: {row['explicit']} | "
+                  f"Danceability: {row['danceability']} | "
+                  f"Energy: {row['energy']} | "
+                  f"Loudness: {row['loudness']} dB | "
+                  f"Mode: {'Major' if row['mode'] == 1 else 'Minor'} | "
+                  f"Speechiness: {row['speechiness']} | "
+                  f"Acousticness: {row['acousticness']} | "
+                  f"Instrumentalness: {row['instrumentalness']} | "
+                  f"Liveness: {row['liveness']} | "
+                  f"Valence: {row['valence']} | "
+                  f"Time Signature: {row['time_signature']} | "
+                  f"Genre: {row['track_genre']}\n")
+
+    def execute_actions(self, actions_list, user_prompt, num_tracks=10):
+        """
+        Execute structured actions explicitly from LLM-generated JSON.
+
+        Parameters:
+        - actions_list: List of actions explicitly from LLM.
+        - user_prompt: User's original prompt.
+        - num_tracks: Number of tracks to retrieve (default 10).
+        """
+        # Variables explicitly shared between actions
+        params = folder_name = tracks = None
+
+        for i_a, action in enumerate(actions_list):
+            print(f"{i_a+1}. {action}")
+
+            if action == "Analyze":
+                params, folder_name = self.analyze_user_request(user_prompt)
+
+            elif action == "Filter":
+                if params is None:
+                    print("Error: Analyze step missing before Filter.")
+                    return
+                tracks = self.search_for_tracks(params, folder_name, num_tracks)
+
+                if tracks.empty:
+                    print("No tracks found during filtering.")
+                    return
+
+                # Semantic refinement
+                print("Refining using RAG explicitly ...")
+                refined_tracks_context = self.refine_tracks_with_semantic_retrieval(tracks)
+
+                refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
+                messages = refined_prompt.format_messages(user_prompt=user_prompt)
+
+                refined_llm_response = self.llm_executor.execute(messages)
+                ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(refined_llm_response)
+
+                if ranked_playlist:
+                    print("Ranked Playlist:", ranked_playlist)
+                    tracks = self.filter_tracks_by_ranking(tracks, ranked_playlist)
+                else:
+                    print("No refined ranking received, continuing with original tracks.")
+
+                folder_name = refined_folder_name if refined_folder_name else folder_name
+
+            elif action == "Retrieve":
+
+                if tracks is None:
+
+                    # Special handling: explicitly provided tracks scenario
+                    print("No previous filter step found. Assuming tracks are provided by user.")
+
+                    # Example logic: explicitly parse provided tracks from user prompt (basic parsing example)
+                    tracks = self.get_user_provided_tracks(user_prompt)
+
+                    if tracks.empty:
+                        print("Error: No user provided tracks found.")
+                        return
+
+                    # Use the original folder name from the user prompt
+                    folder_name = "user_provided_tracks"
+
+                self.fetch_recommended_tracks(tracks, folder_name)
+
+            elif action == "Convert":
+                print("Conversion already performed during 'Retrieve' step. Skipping redundant execution.")
+
+            elif action == "Summarize":
+                if tracks is None:
+                    print("Error: No tracks explicitly available to summarize.")
+                    return
+                self.summarize_results(tracks)
+
+            else:
+                print(f"Error: Unknown action '{action}' encountered.")
+                return
+
+        print("\nAll actions executed successfully!")
+
+    def get_user_provided_tracks(self, user_prompt):
+        """
+        Parses provided tracks from the user prompt.
+        Example implementation—user must list tracks as "Artist - Song Name".
+        """
+
+        lines = user_prompt.strip().split("\n")
+        tracks = []
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("-"):
+                line_content = line[1:].strip()  # remove leading '-'
+                if " - " in line_content:
+                    artist, title = line_content.split(" - ", 1)
+                    tracks.append({
+                        'artists': artist.strip(),
+                        'track_name': title.strip(),
+                        'popularity': None,
+                        'tempo': None,
+                        'explicit': None,
+                        'danceability': None,
+                        'energy': None,
+                        'loudness': None,
+                        'mode': None,
+                        'speechiness': None,
+                        'acousticness': None,
+                        'instrumentalness': None,
+                        'liveness': None,
+                        'valence': None,
+                        'time_signature': None,
+                        'track_genre': None
+                    })
+
+        if not tracks:
+            print("No explicitly provided tracks found in user prompt.")
+
+        return pd.DataFrame(tracks)
+
+
+    def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
+
+        # Normalize titles and artist names for robust matching
+        ranked_df = pd.DataFrame(ranked_playlist)
+        ranked_df['title'] = ranked_df['title'].str.lower().str.strip()
+        ranked_df['artist'] = ranked_df['artist'].str.lower().str.strip()
+
+        original_tracks['normalized_title'] = original_tracks['track_name'].str.lower().str.strip()
+        original_tracks['normalized_artist'] = original_tracks['artists'].str.lower().str.split(';').str[0].str.strip()
+
+        filtered_df = pd.merge(ranked_df, original_tracks,
+                               left_on=['title', 'artist'],
+                               right_on=['normalized_title', 'normalized_artist'],
+                               how='inner')
+
+        filtered_df = filtered_df.drop_duplicates(subset=['track_name', 'artists'])
+
+        # Check for tracks missing after merge:
+        missing_tracks = set(ranked_df['title']) - set(filtered_df['normalized_title'])
+        if missing_tracks:
+            print(f"Missing tracks after merge: {missing_tracks}")
+
+        return filtered_df
+
+    def run_planning_agent(self, user_prompt, num_tracks=10):
+        print(f'\n# Step 1: Analyzing user prompt "{user_prompt}". Generating explicit plan of actions...')
+        planning_prompt = self.prompt_engineer.construct_planning_prompt(user_prompt)
+        messages_plan = planning_prompt.format_messages(user_prompt=user_prompt)
+        explicit_plan_text = self.llm_executor.execute(messages_plan)
+
+        if explicit_plan_text is None:
+            raise ValueError("LLM returned None or invalid response during planning step.")
+
+        print("Plan of actions:\n", explicit_plan_text)
+
+        print("\n# Step 2: Converting plan to structured actions...")
+        structuring_prompt = self.prompt_engineer.construct_action_structuring_prompt(explicit_plan_text)
+        messages_structured = structuring_prompt.format_messages(explicit_plan=explicit_plan_text)
+        structured_actions_json = self.llm_executor.execute(messages_structured)
+
+        if structured_actions_json is None or "actions" not in structured_actions_json:
+            raise ValueError("LLM returned None or invalid response during structuring actions step.")
+
+        actions_list = structured_actions_json["actions"]
+        print("Structured Actions:\n", structured_actions_json)
+
+        print("\n\n# Step 3: Executing actions explicitly...")
+        self.execute_actions(actions_list, user_prompt, num_tracks)
+
+
+    def refine_tracks_with_semantic_retrieval(self, tracks, top_k=3):
+        refined_tracks = []
+        for idx, track in tracks.iterrows():
+            artist = track['artists'].split(';')[0].strip()
+            title = track['track_name']
+
+            print(f"Retrieving semantic context for: {artist} - {title}")
+
+            song_text = retrieve_or_add_song(artist, title)
+
+            if song_text:
+                print(f"Semantic context retrieved for {title}, refining recommendations...")
+                refined_tracks.append({
+                    'artist': artist,
+                    'title': title,
+                    'context': song_text
+                })
+            else:
+                print(f"No semantic context for '{title}'. Proceeding with only numeric filtering.")
+                refined_tracks.append({
+                    'artist': artist,
+                    'title': title,
+                    'context': None
+                })
+
+        return refined_tracks
+
+
+# Example Usage
+if __name__ == "__main__":
+    orchestrator = Orchestrator()
+
+    # planning, single call
+    user_prompt = "playlist for birthday party of my 10 years old son"
+    user_prompt = "music for romantic date"
+    orchestrator.run_planning_agent( user_prompt, num_tracks = 20)
+
+    # Scenario 2: Simple direct download request (retrieval, conversion, summarization only)
+    prompt_simple = (
+    "I already have a list of specific songs:\n"
+    "- The Weeknd - Blinding Lights\n"
+    "- Eminem - Lose Yourself\n"
+    "- Coldplay - Adventure of a Lifetime\n\n"
+    "Just download these exact songs from YouTube, convert them to mp3, "
+    "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+)
+    orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+
+    # # Scenario 3: Simple direct download request (retrieval, conversion, summarization only)
+    # prompt_simple = (
+    #     "I already have a list of specific songs:\n"
+    #     "- The Weeknd - Blinding Lights\n"
+    #     "- Eminem - Lose Yourself\n"
+    #     "- Coldplay - Adventure of a Lifetime\n\n"
+    #     "I want you to find similar songs for me from the dataset,  and create playable playlist  "
+    # )
+    # orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+
+
+
+
+
+
+
+
+# # planning, test different scenarios
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ? I just need track names, not the playable files"
+    # )  # good!
+    # orchestrator.run_planning_agent(user_prompt, num_tracks=20)
+
+
+
+    # # test memory:
+    # user_prompt_1 = "music tracks suitable for dancing"
+    # orchestrator.run_planning_agent(user_prompt_1, num_tracks=10)
+    #
+    # # Second prompt explicitly tests memory explicitly
+    # user_prompt_2 = "Now give me something slower and more relaxing."
+    # orchestrator.run_planning_agent(user_prompt_2, num_tracks=10)
+
+
+
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you just find these exact tracks on YouTube, download and convert them to mp3, "
+    #     "and then summarize the results for me?"
+    # )
+
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you prepare a payable playlist with these songs for me  ?"
+    # )  # tries to find common featires and creates new playlist
+
+    # user_prompt = (
+    #     "I already have a list of specific songs. "
+    #     "Just download these exact songs from YouTube, convert them to mp3, and summarize the resulting playlist. "
+    #     "No additional analysis or recommendations are needed."
+    # )  # works but too simple
+
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you prepare a payable playlist with these songs for me  ?"
+    #     "No additional analysis or recommendations are needed."
+    # )  # GOOD
+
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ?"
+    # )  # good!
+
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ? I just need track names, not the playable files"
+    # )  # good!
+    #
+    # user_prompt = "music tracks suitable for studying for exams"
+
+
+output_parser.py:
+import re
+import json
+
+class OutputParser:
+    def parse_response(self, llm_response):
+        try:
+            numeric_ranges = llm_response.get("numeric_ranges", {})
+            summary = llm_response.get("summary", "default_folder")
+
+            params = {}
+
+            for key, value in numeric_ranges.items():
+                # single-value parameters
+                if key in ["explicit", "mode", "time_signature"]:
+                    params[key] = value
+                # numeric range parameters
+                elif isinstance(value, list) and len(value) == 2:
+                    params[key] = [value[0], value[1]]
+                else:
+                    params[key] = None  # Fallback for any unexpected format
+
+            folder_name = re.sub(r'[\\/*?:"<>|]', "_", summary.lower().replace(" ", "_"))
+
+            return params, folder_name
+
+        except Exception as e:
+            print(f"General parsing error: {e}")
+            return None, None
+
+    def parse_ranked_playlist(self, llm_response):
+        if isinstance(llm_response, str):
+            try:
+                json_str = re.search(r'\{.*\}', llm_response, re.DOTALL)
+                if json_str:
+                    llm_response = json.loads(json_str.group())
+                else:
+                    print("Parsing error: No valid JSON found.")
+                    return None, "default_folder"
+            except json.JSONDecodeError:
+                print("Parsing error: JSON decode failed.")
+                return None, "default_folder"
+
+        try:
+            ranked_playlist = llm_response.get("ranked_playlist", [])
+            summary = llm_response.get("summary", "default_folder")
+
+            folder_name = summary.lower().replace(" ", "_").replace("/", "_")
+            return ranked_playlist, folder_name
+
+        except Exception as e:
+            print(f"General parsing error: {e}")
+            return None, "default_folder"
+
+
+
+prompt_engineer.py:
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema import SystemMessage, HumanMessage
+
+class PromptEngineer:
+    def __init__(self):
+        self.dataset_genres = [
+            "acoustic", "afrobeat", "alt-rock", "alternative", "ambient", "anime", "black-metal",
+            "bluegrass", "blues", "brazil", "breakbeat", "british", "cantopop", "chicago-house",
+            "children", "chill", "classical", "club", "comedy", "country", "dance", "dancehall",
+            "death-metal", "deep-house", "detroit-techno", "disco", "disney", "drum-and-bass",
+            "dub", "dubstep", "edm", "electro", "electronic", "emo", "folk", "forro", "french",
+            "funk", "garage", "german", "gospel", "goth", "grindcore", "groove", "grunge", "guitar",
+            "happy", "hard-rock", "hardcore", "hardstyle", "heavy-metal", "hip-hop", "honky-tonk",
+            "house", "idm", "indian", "indie", "indie-pop", "industrial", "iranian", "j-dance",
+            "j-idol", "j-pop", "j-rock", "jazz", "k-pop", "kids", "latin", "latino", "malay",
+            "mandopop", "metal", "metalcore", "minimal-techno", "mpb", "new-age", "opera", "pagode",
+            "party", "piano", "pop", "pop-film", "power-pop", "progressive-house", "psych-rock",
+            "punk", "punk-rock", "r-n-b", "reggae", "reggaeton", "rock", "rock-n-roll", "rockabilly",
+            "romance", "sad", "salsa", "samba", "sertanejo", "show-tunes", "singer-songwriter", "ska",
+            "sleep", "songwriter", "soul", "spanish", "study", "swedish", "synth-pop", "tango",
+            "techno", "trance", "trip-hop", "turkish", "world-music"
+        ]
+
+        self.system_template = """
+               You're a music recommendation expert.
+               The user provides a general emotional or situational description.
+               You must explicitly respond in JSON format containing ranges or explicit values for these parameters:
+
+               - explicit: Explicitly boolean (true = explicit lyrics; false = no explicit lyrics; null if uncertain).
+               - danceability (0.0–1.0): How suitable a track is for dancing based on tempo, rhythm stability, beat strength, and regularity.
+               - energy (0.0–1.0): Intensity and activity. Energetic tracks feel fast, loud, noisy (e.g. death metal = high energy, Bach prelude = low energy).
+               - loudness (-60 to 0 dB): Overall track loudness (closer to 0 is louder).
+               - mode: Modality of the track explicitly (0 = minor, 1 = major, null if uncertain).
+               - speechiness (0.0–1.0): Presence of spoken words (values >0.66 = mostly speech, 0.33–0.66 = rap/music mix, <0.33 = mostly music).
+               - acousticness (0.0–1.0): Likelihood track is acoustic (1.0 = fully acoustic).
+               - instrumentalness (0.0–1.0): Likelihood track has no vocals (1.0 = instrumental only).
+               - liveness (0.0–1.0): Presence of audience (values >0.8 = live performance).
+               - valence (0.0–1.0): Musical positiveness (1.0 = happy/euphoric, 0.0 = sad/angry).
+               - tempo (60–200 BPM): Overall speed or pace of a track in beats per minute.
+               - time_signature (3–7): Number of beats per bar (typical values: 3 to 7).
+               - track_genre: Select explicitly from provided genre list:
+                 {genres}
+
+        If any parameter can't be determined,  return "null".
+
+        Additionally,  include a short summary (2-4 words) capturing the user's request for folder naming.
+
+        JSON response format:
+        {{
+            "numeric_ranges": {{
+                "explicit": true,
+                "tempo": [min, max],
+                ...
+            }},
+            "summary": "short summary here"
+        }}
+        """
+
+    def construct_prompt(self, user_prompt):
+        system_message = SystemMessage(content=self.system_template.format(genres=self.dataset_genres))
+        user_message = HumanMessage(content=user_prompt, additional_kwargs={"message_type": "user_prompt"})
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+
+    def construct_planning_prompt_with_example(self, user_prompt):
+        system_message = SystemMessage(content=f"""
+        You're a task-planning assistant for a music recommendation agent named FitBeat.
+
+        FitBeat has the following abilities and resources:
+
+        AVAILABLE RESOURCES:
+        - A Kaggle dataset containing tracks with numeric audio features (tempo, energy, danceability, valence, loudness, speechiness, instrumentalness, acousticness, liveness, genre, popularity).
+        - Ability to interpret emotional descriptions using LLM and convert them to numeric audio parameters.
+        - Ability to filter tracks based on numeric audio parameters.
+        - Ability to retrieve audio tracks from YouTube.
+        - Ability to convert downloaded tracks to mp3 format.
+        - Ability to summarize and present results.
+
+        YOUR TASK:
+        Given a user's music request, outline a clear and executable sequence of actions.
+        Each action must  correspond to one of the listed abilities or resources.
+
+        EXAMPLE (user input: "relaxing music for meditation"):
+        1. Interpret user's emotional description into numeric audio parameters.
+        2. Filter Kaggle dataset using numeric parameters.
+        3. Retrieve recommended audio tracks from YouTube.
+        4. Convert downloaded tracks to mp3 format.
+        5. Summarize and  present recommended tracks.
+
+        Return as a numbered list of actions. Do not include any steps beyond listed capabilities.
+        """)
+
+        user_message = HumanMessage(content=user_prompt)
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_planning_prompt(self, user_prompt):
+        system_message = SystemMessage(content=f"""
+        You're a task-planning assistant for a music recommendation agent named FitBeat.
+
+        FitBeat has these abilities and resources:
+        - Kaggle dataset with audio features (tempo, energy, danceability, valence, etc.).
+        - Convert emotional descriptions into numeric audio parameters.
+        - Filter tracks by audio parameters.
+        - Retrieve tracks from YouTube.
+        - Convert tracks to mp3.
+        - Summarize and present results.
+
+        Outline a clear, executable sequence of actions corresponding only to these abilities.
+
+        Return as a numbered list of actions.
+        """)
+
+        user_message = HumanMessage(content=user_prompt)
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_action_structuring_prompt_old(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant tasked with converting a plain-text, numbered list of task actions into structured JSON.
+
+        FitBeat (music recommendation agent) has ONLY these action keywords, strictly in the logical order they should always appear:
+        1. "Analyze": includes analyzing user prompt, interpreting emotional descriptions, converting them into numeric audio parameters.
+        2. "Filter": includes filtering the dataset using numeric audio parameters.
+        3. "Retrieve": includes retrieving audio tracks from YouTube.
+        4. "Convert": includes converting retrieved tracks into mp3 format.
+        5. "Summarize": includes summarizing results clearly.
+
+        You must analyze each provided numbered action carefully, mapping each action clearly to ONE keyword above, while strictly maintaining their logical order.
+
+        Clarification:
+        - Converting emotional descriptions maps ONLY to "Analyze".
+        - Filtering tracks comes AFTER "Analyze".
+        - Retrieval and Conversion clearly and follow filtering.
+        - Summarizing comes last.
+
+        Always ensure your structured actions strictly follow the logical order clearly listed above.
+
+        JSON format you must return clearly:
+        {
+          "actions": ["Analyze", "Filter", "Retrieve", "Convert", "Summarize"]
+        }
+
+        No additional explanation. Respond ONLY with valid JSON.
+        """)
+
+        user_message = HumanMessage(content=f"Convert this text plan into structured JSON:\n\n{explicit_plan}")
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_action_structuring_prompt(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant converting a textual action plan into structured JSON actions for the FitBeat agent.
+
+        Available actions:
+        - "Analyze": interpret emotional descriptions into audio parameters.
+        - "Filter": filter tracks based on audio parameters.
+        - "Retrieve": retrieve tracks from YouTube.
+        - "Convert": convert retrieved tracks into mp3 format.
+        - "Summarize": summarize the final playlist.
+
+        Instructions:
+        - Include each action type AT MOST ONCE, regardless of how many times it appears in the textual plan.
+        - List actions ONLY IF they are explicitly mentioned in the provided plan.
+        - Do NOT insert, reorder, or assume any actions not explicitly stated.
+        - If multiple specific examples of the same action are listed explicitly in sequence (e.g., multiple "Retrieve" steps), collapse them into a single instance of that action.
+
+        Return ONLY a valid JSON response in the following format (no additional text or explanation):
+
+        {
+          "actions": ["Action1", "Action2", "..."]
+        }
+        """)
+        user_message = HumanMessage(content=f"Convert this explicit plan into structured JSON:\n\n{explicit_plan}")
+
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_refined_prompt(self, user_prompt, refined_tracks_context):
+        context_text = "\n".join([
+            f"{i + 1}. {track['artist']} - {track['title']}:\n{track['context'][:500]}..." if track[
+                'context'] else f"{i + 1}. {track['artist']} - {track['title']}: No additional context."
+            for i, track in enumerate(refined_tracks_context)
+        ])
+
+        augmented_prompt = f"""
+        Given the user's request: '{user_prompt}',
+        and given the candidate tracks with their lyrics/descriptions provided below:
+
+        {context_text}
+
+        Perform the following instructions precisely:
+
+        1. Rank ALL tracks listed above from MOST suitable to LEAST suitable according to how closely each matches the user's request.
+        2. Do NOT omit any track explicitly—include every track listed exactly once.
+        3. Ensure there are NO DUPLICATES in your final ranked list.
+        4. Return ONLY this valid JSON format with no additional explanations or text:
+
+        {{
+            "ranked_playlist": [
+                {{"artist": "Artist1", "title": "Title1"}},
+                {{"artist": "Artist2", "title": "Title2"}},
+                ...
+            ],
+            "summary": "short_summary_for_folder_name"
+        }}
+        """
+
+        return ChatPromptTemplate.from_messages([
+            SystemMessage(
+                content="You're an expert music recommender ranking candidate track. Follow instructions exactly."),
+            HumanMessage(content=augmented_prompt)
+        ])
+
+
+if __name__ == "__main__":
+    from llm_executor import LLMExecutor
+    import json
+
+    prompt_engineer = PromptEngineer()
+    llm_executor = LLMExecutor()
+
+    user_prompt = "music tracks suitable for studying for exams"
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you just find these exact tracks on YouTube, download and convert them to mp3, "
+        "and then summarize the results for me?"
+    )
+
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you prepare a payable playlist with these songs for me  ?"
+    )# tries to find common featires and creates new playlist
+
+    user_prompt = (
+        "I already have a list of specific songs. "
+        "Just download these exact songs from YouTube, convert them to mp3, and summarize the resulting playlist. "
+        "No additional analysis or recommendations are needed."
+    )# works but too simple
+
+    user_prompt = (
+        "I already have a list of songs. "
+        "Can you prepare a payable playlist with these songs for me  ?"
+        "No additional analysis or recommendations are needed."
+    ) # GOOD
+
+    user_prompt = (
+        "I already have a list of songs. I want playlist with similar, but other, songs "
+        "Can you do it for me ?"
+    )  # good!
+
+    user_prompt = (
+        "I already have a list of songs. I want playlist with similar, but other, songs "
+        "Can you do it for me ? I just need track names, not the playable files"
+    )  # good!
+
+    planning_prompt = prompt_engineer.construct_planning_prompt(user_prompt)
+    messages = planning_prompt.format_messages(user_prompt=user_prompt)
+
+    explicit_plan = llm_executor.execute(messages)
+
+    print("\nStep 1 - Explicit Plan (Text):\n", explicit_plan)
+
+    # Step 2: Convert explicit plan into structured actions JSON
+    structuring_prompt = prompt_engineer.construct_action_structuring_prompt(explicit_plan)
+    messages_json = structuring_prompt.format_messages(explicit_plan=explicit_plan)
+    structured_actions = llm_executor.execute(messages_json)
+
+    print("\nStep 2 - Structured Actions (JSON):\n", json.dumps(structured_actions, indent=2))
+
+
+    track_downloader.py:
+    import os
+import subprocess
+import re
+from yt_dlp import YoutubeDL
+from pathlib import Path
+import config
+
+class TrackDownloader:
+    def __init__(self):
+        self.ffmpeg_path = config.FFMPEG_PATH
+        self.TRACKS_DIR = config.TRACKS_DIR
+
+    def _safe_filename(self, track_name, artist_name, track_index=None):
+        safe_name = re.sub(r'[\\/*?:"<>|]', "_", f"{artist_name} - {track_name}")
+        if track_index is not None:
+            return f"{track_index:02d} - {safe_name}"
+        return safe_name
+
+    def download_and_convert(self, track_name, artist_name, subfolder, track_index=None):
+        filename_safe = self._safe_filename(track_name, artist_name, track_index)
+        save_folder = Path(subfolder)
+        save_folder.mkdir(parents=True, exist_ok=True)
+        output_mp3 = save_folder / f"{filename_safe}.mp3"
+
+        # Check if the file already exists
+        if output_mp3.exists():
+            print(f"'{output_mp3.name}' already exists, skipping download.")
+            return
+
+        query = f"{track_name} {artist_name} audio"
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': f"{save_folder}/{filename_safe}.%(ext)s",
+            'quiet': True,
+        }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([f"ytsearch1:{query}"])
+
+        # find the downloaded file
+        downloaded_file = next(save_folder.glob(f"{filename_safe}.*"))
+
+        subprocess.run(
+            [self.ffmpeg_path, "-i", str(downloaded_file), "-vn",
+             "-acodec", "libmp3lame", "-y", str(output_mp3)],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
+        downloaded_file.unlink(missing_ok=True)
+
+        print(f"Downloaded and converted: {output_mp3.name}")
+
+#  Example Usage:
+if __name__ == "__main__":
+
+    # Initialize TrackDownloader
+    downloader = TrackDownloader()
+
+    # Example track details
+    track_name = "Blinding Lights"
+    artist_name = "The Weeknd"
+    subfolder = "test_download"
+
+    # Execute download and conversion
+    downloader.download_and_convert(track_name, artist_name, subfolder, 3)
+
+
+.gitignore:
+.env
+audio/downloaded_tracks
+corpus/genius_corpus/
+prompt_review
+
+
+
+config.py:
+from pathlib import Path
+
+# Project root path
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+#data
+FILE_PATH = PROJECT_ROOT / 'data' / 'kaggle' / 'dataset.csv'
+
+# Paths
+FFMPEG_PATH = PROJECT_ROOT / 'bin' / 'ffmpeg.exe'
+TRACKS_DIR = PROJECT_ROOT / 'audio' / 'downloaded_tracks'
+
+# Corpus and Embedding Paths
+CORPUS_DIR = PROJECT_ROOT / "corpus" / "genius_corpus"
+CORPUS_METADATA_PATH = PROJECT_ROOT / "corpus" / "corpus_metadata.csv"
+EMBEDDINGS_DIR = PROJECT_ROOT / "corpus" / "embeddings"
+EMBEDDINGS_DB_PATH = PROJECT_ROOT / "corpus" / "embeddings" / "genius_corpus_db"
+
+
+
