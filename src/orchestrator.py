@@ -25,13 +25,20 @@ class Orchestrator:
         # Action mapping
         self.action_mapping = {
             "Analyze": self.analyze_user_request,
-            "Filter": self.search_for_tracks,
-            "Retrieve": self.fetch_recommended_tracks,
-            "Convert": self.fetch_recommended_tracks,  # downloading implicitly includes converting
+            "Filter": self.filter_tracks_by_audio_params,
+            "Refine": self.refine_tracks,
+            "Retrieve_and_Convert": self.retrieve_and_convert,
             "Summarize": self.summarize_results
         }
 
     def analyze_user_request(self, user_prompt):
+        """
+            Analyze user's emotional or situational prompt to derive numeric audio parameters.
+
+            :param user_prompt: user prompt (str).
+            :return: (params: dict, folder_name: str)
+        """
+
         print(f'\nAnalyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
         prompt_template = self.prompt_engineer.construct_prompt(user_prompt)
         messages = prompt_template.format_messages(user_prompt=user_prompt)
@@ -68,8 +75,30 @@ class Orchestrator:
         params, folder_name = self.parser.parse_response(llm_response)
         return params, folder_name
 
-    def search_for_tracks(self, params, folder_name, num_tracks=10):
+    def filter_tracks_by_audio_params(self, params, folder_name, num_tracks=10):
+        """
+            Filters tracks from the Kaggle dataset based on numeric audio parameters derived from user input.
 
+            Parameters:
+                params (dict):
+                    Dictionary containing numeric audio parameter ranges or values.
+
+                folder_name (str):
+                    Name used for storing tracks and associated outputs resulting from this filtering step.
+
+                num_tracks (int, optional, default=10):
+                    Maximum number of tracks to retrieve from numeric filtering.
+
+            Returns:
+                pd.DataFrame:
+                    DataFrame containing tracks that match numeric filtering criteria,
+                    including columns such as:
+                        - 'track_name': Title of the track.
+                        - 'artists': Artist name(s).
+                        - 'popularity', 'tempo', 'explicit', 'danceability', 'energy', etc.
+
+                    If no tracks match criteria, returns an empty DataFrame.
+        """
         filtered_tracks = filtering_logic(params, self.dataset, num_tracks)
 
         if filtered_tracks.empty:
@@ -103,8 +132,76 @@ class Orchestrator:
 
         return filtered_tracks
 
+    def refine_tracks(self, user_prompt, tracks, folder_name):
+        """
+           Performs semantic refinement using RAG based on lyrics and song context.
 
-    def fetch_recommended_tracks(self, tracks, folder_name):
+           This method retrieves semantic context (lyrics, descriptions) for each track, then uses an LLM
+           to rank the tracks according to their semantic relevance to the user's original emotional or situational description.
+           It  matches and reorders the original tracks DataFrame based on this semantic ranking.
+
+           Parameters:
+               user_prompt (str):
+                   The user's original request.
+
+               tracks (pd.DataFrame):
+                   DataFrame containing tracks initially selected via numeric filtering.
+                   Must include columns:
+                       - 'track_name': Title of the track.
+                       - 'artists': Artist(s) associated with the track.
+                       - Additional numeric metadata from the original dataset.
+
+               folder_name (str):
+                   Name of the folder used to store the tracks and related outputs.
+                   Can be updated if the semantic refinement step provides a more suitable name.
+
+           Returns:
+               tuple: (tracks (pd.DataFrame), folder_name (str)):
+                   - tracks: DataFrame filtered and reordered based on semantic relevance.
+                   - folder_name: Updated folder name provided by the semantic refinement step.
+                                  Defaults to the original folder name if no update is provided.
+
+            Refinement Steps:
+               1. Retrieves semantic context (lyrics, descriptions) for each track.
+               2. Constructs and sends a prompt to an LLM to rank tracks semantically.
+               3. Parses ranked tracks provided by the LLM.
+               4. Explicitly filters and reorders original tracks according to semantic ranking.
+
+           Error Handling :
+               - Handles cases where semantic context is unavailable (proceeds without context).
+               - Logs errors or issues encountered during semantic refinement.
+               - Ensures robust handling of missing tracks or failed LLM responses.
+           """
+        refined_tracks_context = self.retrieve_semantic_context(tracks)
+        refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
+        messages = refined_prompt.format_messages(user_prompt=user_prompt)
+        ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(self.llm_executor.execute(messages))
+
+        if ranked_playlist:
+            tracks = self.reorder_tracks_by_semantic_ranking(tracks, ranked_playlist)
+            folder_name = refined_folder_name or folder_name
+            print("✅ Refinement (RAG) explicitly completed successfully!")
+        else:
+            print("⚠️ Refinement explicitly failed; proceeding with original tracks.")
+
+        return tracks, folder_name
+
+
+    def retrieve_and_convert(self, tracks, folder_name):
+        """
+            Retrieves audio tracks from YouTube and converts them to MP3 format.
+
+            Parameters:
+                tracks (pd.DataFrame): Tracks to retrieve and convert.
+                folder_name (str): Folder name for storing MP3 files.
+
+            Returns:
+                None
+
+            Notes:
+                - Skips downloading if a track file already exists.
+                - Logs each successful download and conversion.
+        """
         folder_path = os.path.join(config.TRACKS_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
 
@@ -121,6 +218,27 @@ class Orchestrator:
             )
 
     def summarize_results(self, tracks):
+        """
+            Generates and displays a summary of the final playlist recommendations.
+
+            This method prints each recommended track, including metadata (popularity, tempo,energy,...).
+
+            Parameters:
+                tracks (pd.DataFrame):
+                    DataFrame containing tracks recommended by previous numeric filtering and/or semantic refinement actions.
+                    Must include columns such as:
+                        - 'track_name': Track title.
+                        - 'artists': Artist name(s).
+                        - 'popularity': Numeric popularity rating.
+                        - 'tempo': Track tempo in BPM.
+                        - 'explicit': Boolean indicating presence of explicit lyrics.
+                        - 'danceability', 'energy', 'loudness', 'mode', 'speechiness', 'acousticness',
+                          'instrumentalness', 'liveness', 'valence', 'time_signature', 'track_genre':
+                          Additional audio and metadata fields explicitly from dataset.
+
+            Returns:
+                None:
+        """
         print("\nFinal Recommendations:")
         for track_number, (_, row) in enumerate(tracks.iterrows()):
             print(f"{track_number}. {row['track_name']} by {row['artists']} | "
@@ -139,169 +257,99 @@ class Orchestrator:
                   f"Time Signature: {row['time_signature']} | "
                   f"Genre: {row['track_genre']}\n")
 
-    def execute_actions_old(self, actions_list, user_prompt, num_tracks=10):
+    def execute_actions(self, actions_list, user_prompt, num_tracks=10):
         """
-        Execute structured actions explicitly from LLM-generated JSON.
+            Executes a structured list of actions generated by the LLM-based planning workflow.
 
-        Parameters:
-        - actions_list: List of actions explicitly from LLM.
-        - user_prompt: User's original prompt.
-        - num_tracks: Number of tracks to retrieve (default 10).
+            This method orchestrates the end-to-end execution of structured actions derived from a user's request.
+
+            Supported Actions Explicitly:
+                - "Analyze": Converts user's prompt into numeric audio parameters.
+                - "Filter": Filters tracks based on numeric audio parameters.
+                - "Refine": Performs semantic refinement using lyrics and semantic context (RAG).
+                - "Retrieve_and_Convert": Downloads tracks from YouTube and converts them to MP3.
+                - "Summarize": Summarizes and displays the final playlist results.
+
+            Parameters:
+                actions_list (list of str):
+                    A structured,ordered list of actions to perform.
+
+                user_prompt (str):
+                    The user's original prompt.
+
+                num_tracks (int, optional, default=10):
+                    Maximum number of tracks.
+
+            Returns:
+                None:
         """
-        # Variables explicitly shared between actions
+
         params = folder_name = tracks = None
 
         for i_a, action in enumerate(actions_list):
             print(f"{i_a+1}. {action}")
 
-            if action == "Analyze":
-                params, folder_name = self.analyze_user_request(user_prompt)
-
-            elif action == "Filter":
-                if params is None:
-                    print("Error: Analyze step missing before Filter.")
-                    return
-                tracks = self.search_for_tracks(params, folder_name, num_tracks)
-
-                if tracks.empty:
-                    print("No tracks found during filtering.")
-                    return
-
-                # Semantic refinement
-                print("Refining using RAG explicitly ...")
-                refined_tracks_context = self.retrieve_semantic_context(tracks)
-
-                refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
-                messages = refined_prompt.format_messages(user_prompt=user_prompt)
-
-                refined_llm_response = self.llm_executor.execute(messages)
-                ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(refined_llm_response)
-
-                if ranked_playlist:
-                    print("Ranked Playlist:", ranked_playlist)
-                    tracks = self.filter_tracks_by_ranking(tracks, ranked_playlist)
-                else:
-                    print("No refined ranking received, continuing with original tracks.")
-
-                folder_name = refined_folder_name if refined_folder_name else folder_name
-
-            elif action == "Retrieve":
-
-                if tracks is None:
-
-                    # Special handling: explicitly provided tracks scenario
-                    print("No previous filter step found. Assuming tracks are provided by user.")
-
-                    # Example logic: explicitly parse provided tracks from user prompt (basic parsing example)
-                    tracks = self.get_user_provided_tracks(user_prompt)
-
-                    if tracks.empty:
-                        print("Error: No user provided tracks found.")
-                        return
-
-                    # Use the original folder name from the user prompt
-                    folder_name = "user_provided_tracks"
-
-                self.fetch_recommended_tracks(tracks, folder_name)
-
-            elif action == "Convert":
-                print("Conversion already performed during 'Retrieve' step. Skipping redundant execution.")
-
-            elif action == "Summarize":
-                if tracks is None:
-                    print("Error: No tracks explicitly available to summarize.")
-                    return
-                self.summarize_results(tracks)
-
-            else:
-                print(f"Error: Unknown action '{action}' encountered.")
+            action_method = self.action_mapping.get(action)
+            if not action_method:
+                print(f"❌ Error: Unknown action '{action}'.")
                 return
 
-        print("\nAll actions executed successfully!")
-
-    def execute_actions(self, actions_list, user_prompt, num_tracks=10):
-        params = folder_name = tracks = None
-
-        for i_a, action in enumerate(actions_list):
-            print(f"{i_a+1}. {action}")
-
+            # Explicitly invoke the action method with appropriate parameters:
             if action == "Analyze":
-                params, folder_name = self.analyze_user_request(user_prompt)
+                params, folder_name = action_method(user_prompt)
 
             elif action == "Filter":
                 if params is None:
                     print("❌ Error: 'Analyze' step missing.")
                     return
-                tracks = self.search_for_tracks(params, folder_name, num_tracks)
+                tracks = action_method(params, folder_name, num_tracks)
 
             elif action == "Refine":
                 if tracks is None or tracks.empty:
                     print("❌ Error: No tracks to refine.")
                     return
-                tracks, folder_name = self.refine_tracks(user_prompt, tracks, folder_name)
+                tracks, folder_name = action_method(user_prompt, tracks, folder_name)
 
             elif action == "Retrieve_and_Convert":
                 if tracks is None:
-                    # Explicitly handle direct retrieval scenario (user-provided tracks)
                     tracks = self.get_user_provided_tracks(user_prompt)
                     folder_name = "user_provided_tracks"
                     if tracks.empty:
                         print("❌ Error: No valid tracks explicitly provided by user.")
                         return
-                self.fetch_recommended_tracks(tracks, folder_name)
+                action_method(tracks, folder_name)
 
             elif action == "Summarize":
                 if tracks is None or tracks.empty:
                     print("❌ Error: No tracks to summarize.")
                     return
-                self.summarize_results(tracks)
-
-            else:
-                print(f"❌ Error: Unknown action '{action}'.")
-                return
+                action_method(tracks)
 
         print("\n✅ All actions executed explicitly and successfully!")
 
-    def get_user_provided_tracks_old(self, user_prompt):
-        """
-        Parses provided tracks from the user prompt.
-        Example implementation—user must list tracks as "Artist - Song Name".
-        """
-
-        lines = user_prompt.strip().split("\n")
-        tracks = []
-
-        for line in lines:
-            line = line.strip()
-            if line.startswith("-"):
-                line_content = line[1:].strip()  # remove leading '-'
-                if " - " in line_content:
-                    artist, title = line_content.split(" - ", 1)
-                    tracks.append({
-                        'artists': artist.strip(),
-                        'track_name': title.strip(),
-                        'popularity': None,
-                        'tempo': None,
-                        'explicit': None,
-                        'danceability': None,
-                        'energy': None,
-                        'loudness': None,
-                        'mode': None,
-                        'speechiness': None,
-                        'acousticness': None,
-                        'instrumentalness': None,
-                        'liveness': None,
-                        'valence': None,
-                        'time_signature': None,
-                        'track_genre': None
-                    })
-
-        if not tracks:
-            print("No explicitly provided tracks found in user prompt.")
-
-        return pd.DataFrame(tracks)
 
     def get_user_provided_tracks(self, user_prompt):
+        """
+           Extracts track and artist names provided directly by the user in the prompt text.
+
+           User prompt must list tracks in the following format:
+               - Artist - Track Name
+
+           Parameters:
+               user_prompt (str):
+                   The user's text input containing a list of tracks and artists.
+
+           Returns:
+               pd.DataFrame:
+                   DataFrame containing the extracted tracks with columns such as:
+                       - 'artists': Artist name provided by the user.
+                       - 'track_name': Track title provided by the user.
+                       - Other metadata fields  set to None (placeholders).
+
+           Notes:
+               - Handles cases where no valid tracks are provided.
+               - Logs a message indicating the number of tracks identified.
+        """
         lines = user_prompt.strip().split("\n")
         tracks = []
 
@@ -337,7 +385,41 @@ class Orchestrator:
 
         return pd.DataFrame(tracks)
 
-    def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
+    def reorder_tracks_by_semantic_ranking(self, original_tracks, ranked_playlist):
+        """
+            Reorders the original set of tracks based on a ranked playlist provided by the LLM.
+
+            This method matches tracks obtained from numeric filtering with the semantic rankings
+            provided by RAG. Matching is performed using normalized track titles and artist names
+            to ensure robustness against case differences and extra spaces.
+
+            Parameters:
+                original_tracks (pd.DataFrame):
+                    DataFrame containing tracks selected from numeric filtering.
+                    Expected columns include at least:
+                        - 'track_name': Original track title.
+                        - 'artists': Artist(s) associated with the track.
+                        - Additional numeric and metadata columns (e.g., tempo, energy).
+
+                ranked_playlist (list of dict):
+                    Provided list of tracks from the semantic refinement step.
+                    Each dictionary must include:
+                        {
+                            'artist': 'artist_name',
+                            'title': 'track_title'
+                        }
+
+            Returns:
+                pd.DataFrame:
+                    A DataFrame containing tracks filtered and reordered according
+                    to the ranked playlist. Includes all metadata columns originally present in
+                    the 'original_tracks' DataFrame.
+
+                    - Matches tracks using normalized 'artist' and 'title' fields.
+                    - Removes duplicates to maintain uniqueness.
+                    - Logs any tracks from 'ranked_playlist' that couldn't be matched.
+
+        """
 
         # Normalize titles and artist names for robust matching
         ranked_df = pd.DataFrame(ranked_playlist)
@@ -362,6 +444,27 @@ class Orchestrator:
         return filtered_df
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
+        """
+            Runs the complete FitBeat action-planning workflow based on a user-provided prompt.
+
+            This method orchestrates three main steps:
+
+                1. **Planning (Textual)**: Uses an LLM to generate a clear, human-readable textual plan of actions.
+
+                2. **Structuring Actions**: Converts the textual plan into structured JSON actions (e.g., Analyze, Filter, Refine, Retrieve_and_Convert, Summarize).
+
+                3. **Executing Actions**: Executes each structured action sequentially, ensuring robust handling of each step's dependencies.
+
+            Parameters:
+                user_prompt (str):
+                    The user's description requesting music recommendations, or a direct instruction for track retrieval.
+
+                num_tracks (int, optional, default=10):
+                    Specifies the maximum number of tracks.
+
+            Returns:
+                None:
+            """
 
         print(f'\n# Step 1: Analyzing user prompt "{user_prompt}". Generating explicit plan of actions...')
         planning_prompt = self.prompt_engineer.construct_planning_prompt(user_prompt)
@@ -388,6 +491,32 @@ class Orchestrator:
         self.execute_actions(actions_list, user_prompt, num_tracks)
 
     def retrieve_semantic_context(self, tracks):
+
+        """
+            Retrieves semantic context (lyrics and descriptions) for a provided list of tracks.
+
+            This method interacts with a semantic corpus (via Genius API) to fetch lyrics and detailed descriptions
+            of each track, enriching numeric-filtered tracks with meaningful textual context required for semantic refinement.
+
+            Parameters:
+                tracks (pd.DataFrame):
+                    DataFrame containing tracks for which semantic context will be retrieved.
+                    Must include columns:
+                        - 'track_name': Title of the track.
+                        - 'artists': Artist(s) associated with the track.
+
+            Returns:
+                list of dict:
+                    Returns a list of dictionaries, each containing:
+                        {
+                            'artist': Artist name explicitly from the original track,
+                            'title': Track title explicitly from the original track,
+                            'context': Explicit textual semantic context (lyrics, description).
+                                       None explicitly if no context was found.
+                        }
+
+            """
+
         semantic_contexts = []
         for idx, track in tracks.iterrows():
             artist = track['artists'].split(';')[0].strip()
@@ -414,21 +543,6 @@ class Orchestrator:
 
         return semantic_contexts
 
-    def refine_tracks(self, user_prompt, tracks, folder_name):
-        refined_tracks_context = self.retrieve_semantic_context(tracks)
-        refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
-        messages = refined_prompt.format_messages(user_prompt=user_prompt)
-        ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(self.llm_executor.execute(messages))
-
-        if ranked_playlist:
-            tracks = self.filter_tracks_by_ranking(tracks, ranked_playlist)
-            folder_name = refined_folder_name or folder_name
-            print("✅ Refinement (RAG) explicitly completed successfully!")
-        else:
-            print("⚠️ Refinement explicitly failed; proceeding with original tracks.")
-
-        return tracks, folder_name
-
 
 # Example Usage
 if __name__ == "__main__":
@@ -437,19 +551,19 @@ if __name__ == "__main__":
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
     #user_prompt = "music for romantic date"
 
-    # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
-    #user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    # Scenario2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
+    user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
 
 
-    # Scenario 3:
-    user_prompt = (
-        "I already have a list of specific songs:\n"
-        "- The Weeknd - Blinding Lights\n"
-        "- Eminem - Lose Yourself\n"
-        "- Coldplay - Adventure of a Lifetime\n\n"
-        "Just download these exact songs from YouTube, convert them to mp3, "
-        "and summarize the resulting playlist. No additional analysis or recommendations are needed."
-    )
+    # # Scenario 3:
+    # user_prompt = (
+    #     "I already have a list of specific songs:\n"
+    #     "- The Weeknd - Blinding Lights\n"
+    #     "- Eminem - Lose Yourself\n"
+    #     "- Coldplay - Adventure of a Lifetime\n\n"
+    #     "Just download these exact songs from YouTube, convert them to mp3, "
+    #     "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+    # )
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=10)
 
