@@ -65,7 +65,7 @@ class Orchestrator:
         params = folder_name = tracks = None
 
         for i_a, action in enumerate(actions_list):
-            print(f"{i_a+1}. {action}")
+            print(f"\n{i_a+1}. {action}")
 
             action_method = self.action_mapping.get(action)
             if not action_method:
@@ -129,7 +129,9 @@ class Orchestrator:
                 None:
             """
 
-        print(f'\n# Step 1: Analyzing user prompt "{user_prompt}". Generating explicit plan of actions...')
+        print(f'\n# Step 1: LLM is analyzing user prompt:\n     '
+              f'    "{user_prompt}".\n'
+              f'          Generating explicit plan of actions...')
         planning_prompt = self.prompt_engineer.construct_planning_prompt(user_prompt)
         messages_plan = planning_prompt.format_messages(user_prompt=user_prompt)
         explicit_plan_text = self.llm_executor.execute(messages_plan)
@@ -137,9 +139,9 @@ class Orchestrator:
         if explicit_plan_text is None:
             raise ValueError("LLM returned None or invalid response during planning step.")
 
-        print("Plan of actions:\n", explicit_plan_text)
+        print("\nPlan of actions:\n", explicit_plan_text)
 
-        print("\n# Step 2: Converting plan to structured actions...")
+        print("\n\n# Step 2: LLM is converting textual plan of actions to to structured one...")
         structuring_prompt = self.prompt_engineer.construct_action_structuring_prompt(explicit_plan_text)
         messages_structured = structuring_prompt.format_messages(explicit_plan=explicit_plan_text)
         structured_actions_json = self.llm_executor.execute(messages_structured)
@@ -148,9 +150,9 @@ class Orchestrator:
             raise ValueError("LLM returned None or invalid response during structuring actions step.")
 
         actions_list = structured_actions_json["actions"]
-        print("Structured Actions:\n", structured_actions_json)
+        print("Structured Plan of Actions:\n", structured_actions_json)
 
-        print("\n\n# Step 3: Executing actions explicitly...")
+        print("\n\n# Step 3: Executing actions...")
         self.execute_actions(actions_list, user_prompt, num_tracks)
 
 

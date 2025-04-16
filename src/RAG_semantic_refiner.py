@@ -19,12 +19,12 @@ class RAGSemanticRefiner:
             artist = track['artists'].split(';')[0].strip()
             title = track['track_name']
 
-            print(f"Retrieving semantic context explicitly for: {artist} - {title}")
+            print(f"\nRetrieving semantic context for: {artist} - {title}")
 
             song_text = retrieve_or_add_song(artist, title)
 
             if song_text:
-                print(f"✅ Semantic context explicitly retrieved for '{title}'.")
+                print(f"✅ Semantic context retrieved for '{title}'.")
                 semantic_contexts.append({
                     'artist': artist,
                     'title': title,
@@ -64,20 +64,55 @@ class RAGSemanticRefiner:
 
     def refine_tracks_with_rag(self, user_prompt, tracks, folder_name):
         """
-        Main method explicitly for semantic refinement using RAG.
-        """
+    Refines and ranks a list of tracks  using RAG based on semantic context (lyrics and descriptions).
+
+    This method:
+        1. Retrieves semantic context (lyrics, descriptions) for each track from the Genius API or local corpus.
+        2. Constructs a refined prompt with the retrieved context and the user's original request.
+        3. Invokes an LLM to rank the provided tracks based on their semantic relevance to the user's prompt.
+        4. Reorders the original DataFrame of tracks according to the semantic ranking provided by the LLM.
+
+    Parameters:
+        user_prompt (str):
+            The original user's emotional or situational description.
+
+        tracks (pd.DataFrame):
+            DataFrame of tracks previously filtered numerically, containing at least:
+                - 'track_name': The name of each track.
+                - 'artists': The artists associated with each track.
+                - Additional numeric audio features and metadata.
+
+        folder_name (str):
+            The name of the folder used to store track files and outputs.
+            May be updated if the semantic refinement suggests a more suitable name.
+
+    Returns:
+        tuple:
+            - refined_tracks (pd.DataFrame): Tracks reordered according to semantic relevance.
+            - refined_folder_name (str): Potentially updated folder name reflecting semantic refinement.
+                                         Defaults to the original `folder_name` if no change is suggested.
+
+    Error Handling Explicitly:
+        - If semantic context retrieval fails for certain tracks, the method logs these issues but continues refinement.
+        - Ensures robustness against missing or incomplete LLM responses, proceeding with original data if refinement fails.
+
+    """
+        print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n")
         refined_tracks_context = self.retrieve_semantic_context(tracks)
+        print(f"\n\n Semantic context retrieved.")
+        print("\n\n\nConstructing refined prompt — combining user request and retrieved semantic contexts...")
         refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
         messages = refined_prompt.format_messages(user_prompt=user_prompt)
 
+        print("LLM is ranking candidate tracks based on semantic relevance to user prompt...")
         ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(
             self.llm_executor.execute(messages))
 
         if ranked_playlist:
             tracks = self.reorder_tracks_by_semantic_ranking(tracks, ranked_playlist)
             folder_name = refined_folder_name or folder_name
-            print("✅ Refinement (RAG) explicitly completed successfully!")
+            print("Refinement (RAG) completed successfully!")
         else:
-            print("⚠️ Refinement explicitly failed; proceeding with original tracks.")
+            print("Refinement failed; proceeding with original tracks.")
 
         return tracks, folder_name

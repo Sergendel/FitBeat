@@ -13,7 +13,7 @@ def prompt_to_audio_params(user_prompt):
     llm_executor = LLMExecutor()
     parser = OutputParser()
     prompt_engineer = PromptEngineer()
-    print(f'\nAnalyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
+    print(f'\nLLM is analyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
     prompt_template = prompt_engineer.construct_prompt(user_prompt)
     messages = prompt_template.format_messages(user_prompt=user_prompt)
     llm_response = llm_executor.execute(messages)

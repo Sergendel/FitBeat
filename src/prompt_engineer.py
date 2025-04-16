@@ -111,6 +111,39 @@ class PromptEngineer:
 
 
     def construct_refined_prompt(self, user_prompt, refined_tracks_context):
+        """
+            Constructs a refined prompt for semantic track ranking using RAG.
+
+            This method creates a detailed prompt combining:
+                1. The user's original emotional or situational request.
+                2. Semantic context retrieved for each candidate track (lyrics, descriptions, etc.).
+
+            The constructed prompt instructs the LLM to:
+                - Rank all candidate tracks from most suitable to least suitable.
+                - Ensure no track is omitted and no duplicates appear.
+                - Respond in a structured JSON format suitable for parsing.
+
+            Parameters:
+                user_prompt (str):
+                    The original emotional or situational description provided explicitly by the user.
+
+                refined_tracks_context (list of dict):
+                    List of dictionaries containing semantic contexts for each track.
+                    Each dictionary explicitly includes:
+                        {
+                            'artist': Artist name,
+                            'title': Track title,
+                            'context': Semantic context explicitly (lyrics/descriptions), or None if unavailable.
+                        }
+
+            Returns:
+                ChatPromptTemplate:
+                    A formatted prompt explicitly ready to be sent to an LLM, containing:
+                        - User's original request explicitly.
+                        - Semantic context for each candidate track explicitly.
+                        - Clear, explicit instructions for generating a structured, ranked response.
+        """
+
         context_text = "\n".join([
             f"{i + 1}. {track['artist']} - {track['title']}:\n{track['context'][:500]}..." if track[
                 'context'] else f"{i + 1}. {track['artist']} - {track['title']}: No additional context."
