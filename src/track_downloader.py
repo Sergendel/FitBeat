@@ -52,6 +52,34 @@ class TrackDownloader:
 
         print(f"Downloaded and converted: {output_mp3.name}")
 
+
+    def retrieve_and_convert(self, tracks, folder_name):
+           """
+               Retrieves audio tracks from YouTube and converts them to MP3 format.
+               Parameters:
+                   tracks (pd.DataFrame): Tracks to retrieve and convert.
+                   folder_name (str): Folder name for storing MP3 files.
+               Returns:
+                   None
+               Notes:
+                   - Skips downloading if a track file already exists.
+                   - Logs each successful download and conversion.
+           """
+           folder_path = os.path.join(config.TRACKS_DIR, folder_name)
+           os.makedirs(folder_path, exist_ok=True)
+           print(f"Downloading recommended tracks explicitly and converting to MP3 explicitly.\n"
+                 f"Saving explicitly playlist to folder explicitly: '{folder_path}'\n")
+           for idx, track in enumerate(tracks.itertuples()):
+               track_number = idx + 1
+               self.download_and_convert(
+                   track.track_name,
+                   track.artists,
+                   folder_path,
+                   track_index=track_number
+               )
+
+
+
 #  Example Usage:
 if __name__ == "__main__":
 
