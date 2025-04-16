@@ -67,8 +67,8 @@ class TrackDownloader:
            """
            folder_path = os.path.join(config.TRACKS_DIR, folder_name)
            os.makedirs(folder_path, exist_ok=True)
-           print(f"Downloading recommended tracks explicitly and converting to MP3 explicitly.\n"
-                 f"Saving explicitly playlist to folder explicitly: '{folder_path}'\n")
+           print(f"Downloading recommended tracks and converting to MP3y.\n"
+                 f"Saving playlist to folder: '{folder_path}'\n")
            for idx, track in enumerate(tracks.itertuples()):
                track_number = idx + 1
                self.download_and_convert(
