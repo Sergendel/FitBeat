@@ -94,7 +94,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_planning_prompt(self, user_prompt):
+    def construct_planning_prompt_old(self, user_prompt):
         system_message = SystemMessage(content=f"""
         You're a task-planning assistant for a music recommendation agent named FitBeat.
     
@@ -113,6 +113,35 @@ class PromptEngineer:
 
         user_message = HumanMessage(content=user_prompt)
 
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_planning_prompt(self, user_prompt):
+        system_message = SystemMessage(content=f"""
+        You're a task-planning assistant for FitBeat, an LLM-powered music recommendation agent.
+
+        FitBeat explicitly has these clearly defined abilities and resources:
+        1. Analyze: Explicitly convert emotional descriptions into numeric audio parameters (tempo, valence, energy, etc.).
+        2. Filter: Explicitly filter tracks based on numeric audio parameters explicitly using Kaggle dataset.
+        3. Refine: Explicitly refine the track list semantically using lyrics, song meanings, and semantic context explicitly (Retrieval-Augmented Generation, RAG).
+        4. Retrieve_and_Convert: Explicitly retrieve audio tracks from YouTube and explicitly convert them to MP3.
+        5. Summarize: Explicitly summarize and present the final playlist.
+
+        Your explicit task:
+        - Given user's request explicitly, outline a clear and executable sequence of actions.
+        - If the user explicitly asks or implies about meaning, lyrics, or emotional depth explicitly beyond numeric parameters, explicitly include the "Refine" step.
+        - Clearly distinguish between numeric filtering ("Filter") and semantic refinement explicitly using lyrics and context ("Refine").
+
+        Example (user input: "Playlist of deep romantic songs with meaningful lyrics"):
+        1. Analyze emotional description explicitly into numeric parameters.
+        2. Filter dataset explicitly based on numeric audio parameters.
+        3. Refine explicitly using semantic analysis (lyrics, meaning, context).
+        4. Retrieve_and_Convert tracks explicitly from YouTube.
+        5. Summarize explicitly and present final playlist.
+
+        Return explicitly as numbered list of actions.
+        """)
+
+        user_message = HumanMessage(content=user_prompt)
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
     def construct_action_structuring_prompt_old(self, explicit_plan):
@@ -148,7 +177,7 @@ class PromptEngineer:
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_action_structuring_prompt(self, explicit_plan):
+    def construct_action_structuring_prompt_old_2(self, explicit_plan):
         system_message = SystemMessage(content="""
         You're an assistant converting a textual action plan into structured JSON actions for the FitBeat agent.
 
@@ -174,6 +203,32 @@ class PromptEngineer:
         user_message = HumanMessage(content=f"Convert this explicit plan into structured JSON:\n\n{explicit_plan}")
 
         return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_action_structuring_prompt(self, explicit_plan):
+        system_message = SystemMessage(content="""
+        You're an assistant converting a textual action plan into structured JSON actions for the FitBeat agent.
+
+        Available actions explicitly defined:
+        - "Analyze": interpret emotional descriptions into numeric audio parameters.
+        - "Filter": filter tracks explicitly based on numeric audio parameters.
+        - "Refine": explicitly perform semantic refinement using RAG (lyrics, emotions, semantic context).
+        - "Retrieve_and_Convert": explicitly retrieve tracks from YouTube and convert them explicitly to MP3 format.
+        - "Summarize": explicitly summarize the final playlist.
+
+        Instructions explicitly given:
+        - Include each action AT MOST ONCE explicitly.
+        - List actions ONLY IF explicitly mentioned in provided plan.
+        - Do NOT insert, reorder, or assume actions not explicitly stated.
+        - Collapse explicitly multiple occurrences of same action into single instance explicitly.
+
+        Return ONLY valid JSON explicitly, no additional text:
+        {
+          "actions": ["Action1", "Action2", "..."]
+        }
+        """)
+        user_message = HumanMessage(content=f"Convert this explicit plan into structured JSON:\n\n{explicit_plan}")
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
 
     def construct_refined_prompt(self, user_prompt, refined_tracks_context):
         context_text = "\n".join([
@@ -219,39 +274,22 @@ if __name__ == "__main__":
     prompt_engineer = PromptEngineer()
     llm_executor = LLMExecutor()
 
-    user_prompt = "music tracks suitable for studying for exams"
+
+    # Scenario 1. Analyze → Filter → Retrieve_and_Convert → Summarize
+    # user_prompt = "music for romantic date"
+
+    # Scenario 2. Analyze → Filter → RAG → Retrieve_and_Convert → Summarize
+    # #user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+
+    # Scenario 3: Retrieve_and_Convert → Summarize
     user_prompt = (
-        "I already have a list of songs. "
-        "Can you just find these exact tracks on YouTube, download and convert them to mp3, "
-        "and then summarize the results for me?"
+        "I already have a list of specific songs:\n"
+        "- The Weeknd - Blinding Lights\n"
+        "- Eminem - Lose Yourself\n"
+        "- Coldplay - Adventure of a Lifetime\n\n"
+        "Just download these exact songs from YouTube, convert them to mp3, "
+        "and summarize the resulting playlist. No additional analysis or recommendations are needed."
     )
-
-    user_prompt = (
-        "I already have a list of songs. "
-        "Can you prepare a payable playlist with these songs for me  ?"
-    )# tries to find common featires and creates new playlist
-
-    user_prompt = (
-        "I already have a list of specific songs. "
-        "Just download these exact songs from YouTube, convert them to mp3, and summarize the resulting playlist. "
-        "No additional analysis or recommendations are needed."
-    )# works but too simple
-
-    user_prompt = (
-        "I already have a list of songs. "
-        "Can you prepare a payable playlist with these songs for me  ?"
-        "No additional analysis or recommendations are needed."
-    ) # GOOD
-
-    user_prompt = (
-        "I already have a list of songs. I want playlist with similar, but other, songs "
-        "Can you do it for me ?"
-    )  # good!
-
-    user_prompt = (
-        "I already have a list of songs. I want playlist with similar, but other, songs "
-        "Can you do it for me ? I just need track names, not the playable files"
-    )  # good!
 
     planning_prompt = prompt_engineer.construct_planning_prompt(user_prompt)
     messages = planning_prompt.format_messages(user_prompt=user_prompt)
@@ -266,3 +304,38 @@ if __name__ == "__main__":
     structured_actions = llm_executor.execute(messages_json)
 
     print("\nStep 2 - Structured Actions (JSON):\n", json.dumps(structured_actions, indent=2))
+
+    # user_prompt = "music tracks suitable for studying for exams"
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you just find these exact tracks on YouTube, download and convert them to mp3, "
+    #     "and then summarize the results for me?"
+    # )
+    #
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you prepare a payable playlist with these songs for me  ?"
+    # )# tries to find common features and creates new playlist
+    #
+    # user_prompt = (
+    #     "I already have a list of specific songs. "
+    #     "Just download these exact songs from YouTube, convert them to mp3, and summarize the resulting playlist. "
+    #     "No additional analysis or recommendations are needed."
+    # )# works but too simple
+    #
+    # user_prompt = (
+    #     "I already have a list of songs. "
+    #     "Can you prepare a payable playlist with these songs for me  ?"
+    #     "No additional analysis or recommendations are needed."
+    # ) # GOOD
+    #
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ?"
+    # )  # good!
+    #
+    # user_prompt = (
+    #     "I already have a list of songs. I want playlist with similar, but other, songs "
+    #     "Can you do it for me ? I just need track names, not the playable files"
+    # )  # good!
+

@@ -139,7 +139,7 @@ class Orchestrator:
                   f"Time Signature: {row['time_signature']} | "
                   f"Genre: {row['track_genre']}\n")
 
-    def execute_actions(self, actions_list, user_prompt, num_tracks=10):
+    def execute_actions_old(self, actions_list, user_prompt, num_tracks=10):
         """
         Execute structured actions explicitly from LLM-generated JSON.
 
@@ -169,7 +169,7 @@ class Orchestrator:
 
                 # Semantic refinement
                 print("Refining using RAG explicitly ...")
-                refined_tracks_context = self.refine_tracks_with_semantic_retrieval(tracks)
+                refined_tracks_context = self.retrieve_semantic_context(tracks)
 
                 refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
                 messages = refined_prompt.format_messages(user_prompt=user_prompt)
@@ -219,7 +219,50 @@ class Orchestrator:
 
         print("\nAll actions executed successfully!")
 
-    def get_user_provided_tracks(self, user_prompt):
+    def execute_actions(self, actions_list, user_prompt, num_tracks=10):
+        params = folder_name = tracks = None
+
+        for i_a, action in enumerate(actions_list):
+            print(f"{i_a+1}. {action}")
+
+            if action == "Analyze":
+                params, folder_name = self.analyze_user_request(user_prompt)
+
+            elif action == "Filter":
+                if params is None:
+                    print("❌ Error: 'Analyze' step missing.")
+                    return
+                tracks = self.search_for_tracks(params, folder_name, num_tracks)
+
+            elif action == "Refine":
+                if tracks is None or tracks.empty:
+                    print("❌ Error: No tracks to refine.")
+                    return
+                tracks, folder_name = self.refine_tracks(user_prompt, tracks, folder_name)
+
+            elif action == "Retrieve_and_Convert":
+                if tracks is None:
+                    # Explicitly handle direct retrieval scenario (user-provided tracks)
+                    tracks = self.get_user_provided_tracks(user_prompt)
+                    folder_name = "user_provided_tracks"
+                    if tracks.empty:
+                        print("❌ Error: No valid tracks explicitly provided by user.")
+                        return
+                self.fetch_recommended_tracks(tracks, folder_name)
+
+            elif action == "Summarize":
+                if tracks is None or tracks.empty:
+                    print("❌ Error: No tracks to summarize.")
+                    return
+                self.summarize_results(tracks)
+
+            else:
+                print(f"❌ Error: Unknown action '{action}'.")
+                return
+
+        print("\n✅ All actions executed explicitly and successfully!")
+
+    def get_user_provided_tracks_old(self, user_prompt):
         """
         Parses provided tracks from the user prompt.
         Example implementation—user must list tracks as "Artist - Song Name".
@@ -258,6 +301,41 @@ class Orchestrator:
 
         return pd.DataFrame(tracks)
 
+    def get_user_provided_tracks(self, user_prompt):
+        lines = user_prompt.strip().split("\n")
+        tracks = []
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("-"):
+                line_content = line[1:].strip()
+                if " - " in line_content:
+                    artist, title = line_content.split(" - ", 1)
+                    tracks.append({
+                        'artists': artist.strip(),
+                        'track_name': title.strip(),
+                        'popularity': None,  # explicitly placeholder
+                        'tempo': None,
+                        'explicit': None,
+                        'danceability': None,
+                        'energy': None,
+                        'loudness': None,
+                        'mode': None,
+                        'speechiness': None,
+                        'acousticness': None,
+                        'instrumentalness': None,
+                        'liveness': None,
+                        'valence': None,
+                        'time_signature': None,
+                        'track_genre': None
+                    })
+
+        if not tracks:
+            print("⚠️ No explicitly provided tracks found in user prompt.")
+        else:
+            print(f"✅ Found {len(tracks)} explicitly user-provided tracks.")
+
+        return pd.DataFrame(tracks)
 
     def filter_tracks_by_ranking(self, original_tracks, ranked_playlist):
 
@@ -284,6 +362,7 @@ class Orchestrator:
         return filtered_df
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
+
         print(f'\n# Step 1: Analyzing user prompt "{user_prompt}". Generating explicit plan of actions...')
         planning_prompt = self.prompt_engineer.construct_planning_prompt(user_prompt)
         messages_plan = planning_prompt.format_messages(user_prompt=user_prompt)
@@ -308,64 +387,72 @@ class Orchestrator:
         print("\n\n# Step 3: Executing actions explicitly...")
         self.execute_actions(actions_list, user_prompt, num_tracks)
 
-
-    def refine_tracks_with_semantic_retrieval(self, tracks, top_k=3):
-        refined_tracks = []
+    def retrieve_semantic_context(self, tracks):
+        semantic_contexts = []
         for idx, track in tracks.iterrows():
             artist = track['artists'].split(';')[0].strip()
             title = track['track_name']
 
-            print(f"Retrieving semantic context for: {artist} - {title}")
+            print(f"Retrieving semantic context explicitly for: {artist} - {title}")
 
             song_text = retrieve_or_add_song(artist, title)
 
             if song_text:
-                print(f"Semantic context retrieved for {title}, refining recommendations...")
-                refined_tracks.append({
+                print(f"✅ Semantic context explicitly retrieved for '{title}'.")
+                semantic_contexts.append({
                     'artist': artist,
                     'title': title,
                     'context': song_text
                 })
             else:
-                print(f"No semantic context for '{title}'. Proceeding with only numeric filtering.")
-                refined_tracks.append({
+                print(f"⚠️ No semantic context explicitly found for '{title}'. Proceeding without semantic context.")
+                semantic_contexts.append({
                     'artist': artist,
                     'title': title,
                     'context': None
                 })
 
-        return refined_tracks
+        return semantic_contexts
+
+    def refine_tracks(self, user_prompt, tracks, folder_name):
+        refined_tracks_context = self.retrieve_semantic_context(tracks)
+        refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
+        messages = refined_prompt.format_messages(user_prompt=user_prompt)
+        ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(self.llm_executor.execute(messages))
+
+        if ranked_playlist:
+            tracks = self.filter_tracks_by_ranking(tracks, ranked_playlist)
+            folder_name = refined_folder_name or folder_name
+            print("✅ Refinement (RAG) explicitly completed successfully!")
+        else:
+            print("⚠️ Refinement explicitly failed; proceeding with original tracks.")
+
+        return tracks, folder_name
 
 
 # Example Usage
 if __name__ == "__main__":
     orchestrator = Orchestrator()
 
-    # planning, single call
-    user_prompt = "playlist for birthday party of my 10 years old son"
-    user_prompt = "music for romantic date"
-    orchestrator.run_planning_agent( user_prompt, num_tracks = 20)
+    # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
+    #user_prompt = "music for romantic date"
 
-    # Scenario 2: Simple direct download request (retrieval, conversion, summarization only)
-    prompt_simple = (
-    "I already have a list of specific songs:\n"
-    "- The Weeknd - Blinding Lights\n"
-    "- Eminem - Lose Yourself\n"
-    "- Coldplay - Adventure of a Lifetime\n\n"
-    "Just download these exact songs from YouTube, convert them to mp3, "
-    "and summarize the resulting playlist. No additional analysis or recommendations are needed."
-)
-    orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+    # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
+    #user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
 
-    # # Scenario 3: Simple direct download request (retrieval, conversion, summarization only)
-    # prompt_simple = (
-    #     "I already have a list of specific songs:\n"
-    #     "- The Weeknd - Blinding Lights\n"
-    #     "- Eminem - Lose Yourself\n"
-    #     "- Coldplay - Adventure of a Lifetime\n\n"
-    #     "I want you to find similar songs for me from the dataset,  and create playable playlist  "
-    # )
-    # orchestrator.run_planning_agent(prompt_simple, num_tracks=3)
+
+    # Scenario 3:
+    user_prompt = (
+        "I already have a list of specific songs:\n"
+        "- The Weeknd - Blinding Lights\n"
+        "- Eminem - Lose Yourself\n"
+        "- Coldplay - Adventure of a Lifetime\n\n"
+        "Just download these exact songs from YouTube, convert them to mp3, "
+        "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+    )
+
+    orchestrator.run_planning_agent(user_prompt, num_tracks=10)
+
 
 
 
