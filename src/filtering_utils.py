@@ -75,9 +75,7 @@ def filter_tracks_by_audio_params(dataset, params, folder_name, num_tracks=10):
     if filtered_tracks.empty:
         print("No tracks match criteria.")
         return filtered_tracks
-    print("\nParameters provided by LLM for tracks filtering:")
-    for key, value in params.items():
-        print(f"  - {key.capitalize()}: {value}")
+
     print("\nSearching Kaggle dataset for matching tracks...")
     unique_tracks_count = filtered_tracks[['track_name', 'artists']].drop_duplicates().shape[0]
     print(f"\n {unique_tracks_count} Selected Tracks :")
@@ -94,6 +92,6 @@ def filter_tracks_by_audio_params(dataset, params, folder_name, num_tracks=10):
         # print(f"   • Liveness: {row['liveness']}")
         # print(f"   • Genre: {row['track_genre']}")
         # print(f"   • Popularity: {row['popularity']}")
-    print(
-        f"\nThe tracks will be stored in the folder '{folder_name}'.\n")
+    #print(
+    #    f"\n***The tracks will be stored in the folder '{folder_name}'.\n")
     return filtered_tracks

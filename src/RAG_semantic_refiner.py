@@ -24,14 +24,14 @@ class RAGSemanticRefiner:
             song_text = retrieve_or_add_song(artist, title)
 
             if song_text:
-                print(f"✅ Semantic context retrieved for '{title}'.")
+                #print(f"Semantic context retrieved for '{title}'.")
                 semantic_contexts.append({
                     'artist': artist,
                     'title': title,
                     'context': song_text
                 })
             else:
-                print(f"⚠️ No semantic context explicitly found for '{title}'. Proceeding without semantic context.")
+                print(f"No semantic context found for '{title}'. Proceeding without semantic context.")
                 semantic_contexts.append({
                     'artist': artist,
                     'title': title,
@@ -97,7 +97,9 @@ class RAGSemanticRefiner:
         - Ensures robustness against missing or incomplete LLM responses, proceeding with original data if refinement fails.
 
     """
-        print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n")
+        print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n"
+              "Context will be loaded from the local corpus if available; otherwise, it will be retrieved dynamically from the Genius API.")
+
         refined_tracks_context = self.retrieve_semantic_context(tracks)
         print(f"\n\n Semantic context retrieved.")
         print("\n\n\nConstructing refined prompt — combining user request and retrieved semantic contexts...")

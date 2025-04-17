@@ -13,7 +13,7 @@ def prompt_to_audio_params(user_prompt):
     llm_executor = LLMExecutor()
     parser = OutputParser()
     prompt_engineer = PromptEngineer()
-    print(f'\nLLM is analyzing user prompt "{user_prompt}" to derive numeric audio parameters...\n')
+    print(f'\nLLM is analyzing user prompt "{user_prompt}"\nto derive numeric audio parameters...\n')
     prompt_template = prompt_engineer.construct_prompt(user_prompt)
     messages = prompt_template.format_messages(user_prompt=user_prompt)
     llm_response = llm_executor.execute(messages)
@@ -23,9 +23,16 @@ def prompt_to_audio_params(user_prompt):
 
     params, folder_name = parser.parse_response(llm_response)
 
-    if not params or not folder_name:
-        raise ValueError("Explicitly missing params or folder_name from LLM response.")
 
+
+    if not params or not folder_name:
+        raise ValueError("Missing params or folder_name from LLM response.")
+    else:
+        print("Resulting ranges of numerical audio parameters:")
+        for key, value in params.items():
+            print(f"  - {key.capitalize()}: {value}")
+        print(
+            f"\n****   The tracks will be stored in the folder '{folder_name}'   *****.\n")
     return params, folder_name
 
 

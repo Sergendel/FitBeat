@@ -114,7 +114,7 @@ GENIUS_API_KEY='your_genius_api_key'
 
 Run the orchestrator:
 ```bash
-python src/orchestrator.py
+python src/orchestrator_no_memory.py
 ```
 
 Modify the `orchestrator.py` main section with desired user prompts to explicitly run different scenarios.
