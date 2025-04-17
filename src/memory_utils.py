@@ -22,5 +22,5 @@ def confirm_clear_memory():
     Prompts user to confirm if they start a new unrelated task.
     Returns True if memory should be cleared.
     """
-    response = input("\n****Do you want to clear previous memory and start a new unrelated task? (y/n): ").strip().lower()
+    response = input("\n*****   Do you want to clear previous memory and start a new unrelated task? (y/n): ").strip().lower()
     return response in ("y", "yes")

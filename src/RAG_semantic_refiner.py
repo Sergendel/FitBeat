@@ -106,14 +106,17 @@ class RAGSemanticRefiner:
         refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
         messages = refined_prompt.format_messages(user_prompt=user_prompt)
 
-        print("LLM is ranking candidate tracks based on semantic relevance to user prompt...")
+        print("******   LLM is ranking candidate tracks based on semantic relevance to user prompt...")
         ranked_playlist, refined_folder_name = self.parser.parse_ranked_playlist(
             self.llm_executor.execute(messages))
 
         if ranked_playlist:
             tracks = self.reorder_tracks_by_semantic_ranking(tracks, ranked_playlist)
             folder_name = refined_folder_name or folder_name
-            print("Refinement (RAG) completed successfully!")
+            print("\nSemantic refinement (RAG) completed successfully!")
+            print("\nRanked Playlist:")
+            for track_number, (_, row) in enumerate(tracks.iterrows(), start=1):
+                print(f"{track_number}. {row['track_name']} by {row['artists']}")
         else:
             print("Refinement failed; proceeding with original tracks.")
 

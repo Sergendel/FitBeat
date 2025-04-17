@@ -13,7 +13,9 @@ def prompt_to_audio_params(user_prompt):
     llm_executor = LLMExecutor()
     parser = OutputParser()
     prompt_engineer = PromptEngineer()
-    print(f'\nLLM is analyzing user prompt "{user_prompt}"\nto derive numeric audio parameters...\n')
+    print(f'\nLLM is analyzing the user prompt: "{user_prompt}"\n'
+          f'to derive numeric audio parameters.\n'
+          f'Additionally, the LLM suggests a suitable folder name for the playlist.\n')
     prompt_template = prompt_engineer.construct_prompt(user_prompt)
     messages = prompt_template.format_messages(user_prompt=user_prompt)
     llm_response = llm_executor.execute(messages)
@@ -78,9 +80,9 @@ def parse_user_prompt_to_dataframe(user_prompt):
                 })
 
     if not tracks:
-        print("⚠️ No explicitly provided tracks found in user prompt.")
+        print("No provided tracks found in user prompt.")
     else:
-        print(f"✅ Found {len(tracks)} explicitly user-provided tracks.")
+        print(f"Found {len(tracks)} explicitly user-provided tracks.")
 
     return pd.DataFrame(tracks)
 

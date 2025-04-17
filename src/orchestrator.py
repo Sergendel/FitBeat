@@ -70,9 +70,12 @@ class Orchestrator:
 
     def update_memory(self, user_prompt):
         # Update memory with the latest interaction
+        existing_summary = self.memory.load_memory_variables({})["history"]
+
         new_summary = self.memory.predict_new_summary(
-            self.memory.buffer, [HumanMessage(content=user_prompt)]
+            messages=[HumanMessage(content=user_prompt)], existing_summary=existing_summary
         )
+
         save_memory_to_file(new_summary)
         print("\nMemory updated and saved for future sessions.")
 
@@ -90,7 +93,8 @@ class Orchestrator:
 
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
-
+        print('\n\n' + '#' * 100)
+        print("### Step 1: Loading existing memory (if available) and constructing the combined prompt:")
         # Initialize memory
         self.initialize_memory()
 
@@ -98,7 +102,8 @@ class Orchestrator:
         prompt_with_memory = self.create_prompt_with_memory(user_prompt)
 
         # Planning
-        print(f'\n# Step 1: LLM is analyzing user request and generating the textual plan of actions...:')
+        print('\n\n' + '#' * 100)
+        print(f'### Step 2: LLM is analyzing user request and generating the textual plan of actions...:')
         planning_prompt = self.prompt_engineer.construct_planning_prompt(prompt_with_memory)
         messages_plan = planning_prompt.format_messages(user_prompt=prompt_with_memory)
         textual_action_plan = self.llm_executor.execute(messages_plan)
@@ -106,9 +111,10 @@ class Orchestrator:
         if textual_action_plan is None:
             raise ValueError("LLM returned None or invalid response during planning step.")
 
-        print("Textual Plan of Actions:\n", textual_action_plan)
+        print("\nTextual Plan of Actions:\n", textual_action_plan)
 
-        print("\n\n# Step 2: LLM is converting textual plan of actions to the structured one...")
+        print('\n\n' + '#' * 100)
+        print("### Step 3: LLM is converting textual plan of actions to the structured one...")
         structuring_prompt = self.prompt_engineer.construct_action_structuring_prompt(textual_action_plan)
         messages_structured = structuring_prompt.format_messages(explicit_plan=textual_action_plan)
         structured_actions_json = self.llm_executor.execute(messages_structured)
@@ -117,9 +123,10 @@ class Orchestrator:
             raise ValueError("LLM returned None or invalid response during structuring actions step.")
 
         actions_list = structured_actions_json["actions"]
-        print("Structured Plan of Actions:\n", structured_actions_json)
+        print("\nStructured Plan of Actions:\n", structured_actions_json)
 
-        print("\n\n# Step 3: Executing actions...")
+        print('\n\n' + '#' * 100)
+        print("### Step 4: Executing actions...")
         self.execute_actions(actions_list, prompt_with_memory, num_tracks)
 
 
@@ -156,7 +163,8 @@ class Orchestrator:
         params = folder_name = tracks = None
 
         for i_a, action in enumerate(actions_list):
-            print(f"\nAction # {i_a + 1}. {action}")
+            print('\n' + '-' * 50)
+            print(f"Action # {i_a + 1}. {action}")
 
             action_method = self.action_mapping.get(action)
             if not action_method:
@@ -228,10 +236,10 @@ if __name__ == "__main__":
     # first run with
     user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
     # next run
-    #user_prompt = "I forgot to say that we would probably dance during our date"
+    user_prompt = "I forgot to say that we would probably dance during our date"
 
 
-    orchestrator.run_planning_agent(user_prompt, num_tracks=10)
+    orchestrator.run_planning_agent(user_prompt, num_tracks=5)
 
 
 
