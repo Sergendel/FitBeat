@@ -16,3 +16,6 @@ CORPUS_DIR = PROJECT_ROOT / "corpus" / "genius_corpus"
 CORPUS_METADATA_PATH = PROJECT_ROOT / "corpus" / "corpus_metadata.csv"
 EMBEDDINGS_DIR = PROJECT_ROOT / "corpus" / "embeddings"
 EMBEDDINGS_DB_PATH = PROJECT_ROOT / "corpus" / "embeddings" / "genius_corpus_db"
+
+# memory file
+MEMORY_FILE_PATH =  PROJECT_ROOT / "src"  / "conversation_memory.json"

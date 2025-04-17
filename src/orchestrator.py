@@ -1,7 +1,4 @@
-from langchain.memory import ConversationSummaryMemory
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from memory_utils import confirm_clear_memory, save_memory_to_file, load_memory_from_file
 from prompt_engineer import PromptEngineer
 from llm_executor import LLMExecutor
 from output_parser import OutputParser
@@ -14,8 +11,7 @@ from playlist_summary import summarize_results
 from user_prompt_utils import parse_user_prompt_to_dataframe
 import warnings
 from langchain_core._api.deprecation import LangChainDeprecationWarning
-from langchain.schema.messages import HumanMessage
-
+from memory_manager import MemoryManager
 
 warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
 
@@ -35,8 +31,8 @@ class Orchestrator:
         self.memory = None
         self.existing_summary = None
 
-        # Initialize model
-        self.llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.0)
+        # memory
+        self.memory_manager = MemoryManager()
 
         # Action mapping
         self.action_mapping = {
@@ -47,59 +43,14 @@ class Orchestrator:
             "Summarize": self.summarize_results
         }
 
-
-    def initialize_memory(self):
-        # Initialize the LangChain ConversationSummaryMemory
-        self.existing_summary = load_memory_from_file()
-
-        if self.existing_summary:
-            print(f'\nExisting memory loaded:\n       "{self.existing_summary}"')
-
-            self.memory = ConversationSummaryMemory(llm=self.llm, buffer=self.existing_summary)
-
-            # Check via LLM if current prompt is a new unrelated task
-            if self.existing_summary and confirm_clear_memory():
-                self.memory.clear()
-                print("\nUnrelated task—memory cleared.")
-            else:
-                print("\nContinuing with existing memory.")
-
-        else:
-            self.memory = ConversationSummaryMemory(llm=self.llm)
-            #print("\nNo existing memory found—starting fresh.")
-
-    def update_memory(self, user_prompt):
-        # Update memory with the latest interaction
-        existing_summary = self.memory.load_memory_variables({})["history"]
-
-        new_summary = self.memory.predict_new_summary(
-            messages=[HumanMessage(content=user_prompt)], existing_summary=existing_summary
-        )
-
-        save_memory_to_file(new_summary)
-        print("\nMemory updated and saved for future sessions.")
-
-
-    def create_prompt_with_memory(self, user_prompt):
-        # Create prompt using memory context
-        memory_context = self.memory.load_memory_variables({})["history"]
-        prompt_with_memory = f"{memory_context}\nNew request: {user_prompt}" if memory_context else user_prompt
-        if memory_context:
-            print(f'\nCombined Prompt (with memory context): \n     "{prompt_with_memory}":\n')
-        else:
-            print(f'\nUser request: \n     "{prompt_with_memory}":\n')
-
-        return prompt_with_memory
-
-
     def run_planning_agent(self, user_prompt, num_tracks=10):
         print('\n\n' + '#' * 100)
         print("### Step 1: Loading existing memory (if available) and constructing the combined prompt:")
         # Initialize memory
-        self.initialize_memory()
+        self.memory_manager.initialize_memory()
 
         # Create refined prompt using memory context
-        prompt_with_memory = self.create_prompt_with_memory(user_prompt)
+        prompt_with_memory = self.memory_manager.create_prompt_with_memory(user_prompt)
 
         # Planning
         print('\n\n' + '#' * 100)
@@ -131,7 +82,7 @@ class Orchestrator:
 
 
         # update memory
-        self.update_memory(user_prompt)
+        self.memory_manager.update_memory(user_prompt)
 
     def execute_actions(self, actions_list, user_prompt, num_tracks=10):
         """
@@ -213,13 +164,13 @@ class Orchestrator:
 if __name__ == "__main__":
     orchestrator = Orchestrator()
 
+    # ------------------  NO MEMORY SCENARIOS  ---------------------------
 
-    # NO MEMORY SCENARIOS, ANSWER "NO" asked whether to use memory or not
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
     #user_prompt = "music for romantic date"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
-    #user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
 
 
     # Scenario 3:
@@ -232,11 +183,13 @@ if __name__ == "__main__":
     #     "and summarize the resulting playlist. No additional analysis or recommendations are needed."
     # )
 
-    # Scenario 4: memory
-    # first run with
-    user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
-    # next run
-    user_prompt = "I forgot to say that we would probably dance during our date"
+    # ----------------------   MEMORY SCENARIOS   ------------------------------
+
+    # # Scenario 4: memory
+    # # first run with
+    # user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    # # next run
+    # user_prompt = "I forgot to say that we would probably dance during our date"
 
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=5)
