@@ -102,6 +102,30 @@ FitBeat features persistent memory, enabling context preservation across multipl
   - Answering **"y"** explicitly clears memory and starts fresh.
   - Answering **"n"** explicitly retains existing summarized memory.
 
+## 🧪 Testing and CI/CD
+
+FitBeat explicitly includes basic unit tests to ensure robustness and correctness of core functionalities. Tests are implemented explicitly using **`pytest`**.
+
+### 📌 Running Tests Locally
+
+Ensure dependencies are explicitly installed:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run tests explicitly with the command:
+
+```bash
+pytest tests/
+```
+
+### 📌 Continuous Integration (CI)
+
+FitBeat explicitly utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. This ensures continuous code quality and early detection of issues.
+
+- View CI workflows explicitly under your repository's **Actions** tab.
+
 
 ##  **FitBeat Execution Examples**
 
