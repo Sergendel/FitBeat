@@ -1,7 +1,7 @@
 import pandas as pd
-from prompt_engineer import PromptEngineer
-from llm_executor import LLMExecutor
-from output_parser import OutputParser
+from src.prompt_engineer import PromptEngineer
+from src.llm_executor import LLMExecutor
+from src.output_parser import OutputParser
 
 def prompt_to_audio_params(user_prompt):
     """

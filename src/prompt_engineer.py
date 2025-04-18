@@ -1,6 +1,6 @@
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
-from dataset_genres import DATASET_GENRES
+from src.dataset_genres import DATASET_GENRES
 
 class PromptEngineer:
     def __init__(self):
