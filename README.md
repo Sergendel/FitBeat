@@ -84,22 +84,24 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
 > **The agent may selectively apply some (or all) of these tools, based explicitly on the action plan it autonomously generates.**
 
 
-## **Agent Memory (Persistent Context Management)**
+## 🧠 **Agent Memory (Persistent Context Management)**
 
 FitBeat features persistent memory, enabling context preservation across multiple interactions and separate runs to refine recommendations based on previous user requests.
 
-### **How It Works:**
+### 📌 **How It Works:**
 
-- **Persistent Storage:**
-  User prompts are summarized by the LLM (GPT-3.5 Turbo) and stored in a dedicated file (`conversation_memory.json`).
+- **Persistent Storage (LLM-based Summarization):**
+  User prompts are summarized by the LLM (GPT-3.5 Turbo), and these concise summaries (rather than full prompts) are stored in a dedicated file (`conversation_memory.json`). 
+  This ensures relevant context is maintained efficiently and clearly.
 
 - **User-Controlled Memory:**
-  At each session's start, FitBeat asks:
+  At each session's start, FitBeat asks explicitly:
   ```
-  Do you want to clear previous memory and start a new unrelated task? (y/n):
+  ⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
   ```
-  - Answering **"y"** clears memory and starts fresh.
-  - Answering **"n"** retains existing memory.
+  - Answering **"y"** explicitly clears memory and starts fresh.
+  - Answering **"n"** explicitly retains existing summarized memory.
+
 
 ##  **FitBeat Execution Examples**
 
