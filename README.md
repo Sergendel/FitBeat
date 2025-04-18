@@ -190,7 +190,7 @@ Create a `.env` file in the root directory with your API keys:
 
 ```bash
 OPENAI_API_KEY="your-openai-api-key"
-GENIUS_API_KEY="your-genius-api-key"
+GENIUS_API_KEY='4wrpRJc6wtzjNstx1LmnTDreTZ_khfbCadjQpMq2WXjiEnb1OmGTaWhk6EXfL-Ad'
 ```
 
 ### ✅ **4. Run the Application**
