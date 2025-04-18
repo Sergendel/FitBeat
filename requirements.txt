@@ -31,6 +31,7 @@ flatbuffers==25.2.10
 fonttools==4.57.0
 frozenlist==1.5.0
 fsspec==2025.3.2
+git-filter-repo==2.47.0
 google-auth==2.38.0
 googleapis-common-protos==1.70.0
 greenlet==3.1.1

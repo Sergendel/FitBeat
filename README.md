@@ -32,22 +32,37 @@ into personalized MP3 playlists.
 
 ## 🚀 **Agent's Internal Workflow (Pipeline)**
 
-FitBeat follows the pipeline:
+FitBeat explicitly operates according to the following structured pipeline:
 
-1. **Analyze User Prompt (LLM-based)**  
-   Translates user prompts into numeric audio parameters.
+### 1. **Memory Initialization (User-Controlled, Optional)**
 
-2. **Plan Actions (LLM-based)**  
-   Generates a structured textual action plan, selecting explicitly from the following possible actions:
-   
-   - **Analyze:** Convert prompts into numeric audio parameters.
-   - **Filter:** Filter tracks based on numeric audio parameters.
-   - **Refine:**  Semantic ranking of candidate tracks.
-   - **Retrieve_and_Convert:** Download tracks from YouTube and convert them into MP3.
-   - **Summarize:** Provide a concise summary of the final playlist.
+At the start of each session, the agent explicitly asks if the user wants to use previously stored conversation context (memory):
 
-3. **Execute Actions (Using Dedicated Agent Tools)**  
-   Executes each action using explicit agent tools (listed below).
+```
+⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
+```
+
+- If **"n"**, the agent explicitly combines previous summarized prompts with the current prompt, enhancing context.
+- If **"y"**, memory explicitly resets, starting fresh contextually.
+
+### 2. **Action Plan Creation (LLM-based, Textual)**
+
+FitBeat explicitly analyzes the (combined or standalone) user prompt to generate a clear, human-readable textual action plan outlining necessary steps.
+
+### 3. **Action Plan Structuring (LLM-based, Structured JSON)**
+
+Translates the textual action plan explicitly into structured, machine-readable JSON actions, selected from the following available actions:
+
+- **Analyze:** Convert user's prompt into numeric audio parameters.
+- **Filter:** Filter tracks from the dataset based on numeric audio parameters.
+- **Rank:** Semantic ranking of candidate tracks using lyrics and descriptions (RAG-based).
+- **Retrieve_and_Convert:** Download selected tracks from YouTube and convert to MP3.
+- **Summarize:** Generate and present a concise summary of the final playlist.
+
+### 4. **Execute Actions (Agent Tools)**
+
+Executes each structured action explicitly using dedicated agent tools (listed in the tools section).
+
 
 
 ## **Agent Tools (Operational Components)**
