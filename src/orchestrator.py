@@ -44,6 +44,7 @@ class Orchestrator:
         }
 
     def run_planning_agent(self, user_prompt, num_tracks=10):
+
         print('\n\n' + '#' * 100)
         print("### Step 1: Loading existing memory (if available) and constructing the combined prompt:")
         # Initialize memory
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     #user_prompt = "music for romantic date"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
-    user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    #user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
 
 
     # Scenario 3:
