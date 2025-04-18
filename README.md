@@ -104,11 +104,11 @@ FitBeat features persistent memory, enabling context preservation across multipl
 
 ## 🧪 Testing and CI/CD
 
-FitBeat explicitly includes basic unit tests to ensure robustness and correctness of core functionalities. Tests are implemented explicitly using **`pytest`**.
+FitBeat includes basic unit tests to ensure robustness and correctness of core functionalities. Tests are implemented using **`pytest`**.
 
 ### 📌 Running Tests Locally
 
-Ensure dependencies are explicitly installed:
+Ensure dependencies are installed:
 
 ```bash
 pip install -r requirements.txt
@@ -122,14 +122,14 @@ pytest tests/
 
 ### 📌 Continuous Integration (CI)
 
-FitBeat explicitly utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. This ensures continuous code quality and early detection of issues.
+FitBeat utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. This ensures continuous code quality and early detection of issues.
 
-- View CI workflows explicitly under your repository's **Actions** tab.
+- View CI workflowsunder your repository's **Actions** tab.
 
 
 ##  **FitBeat Execution Examples**
 
-These examples explicitly demonstrate how FitBeat autonomously creates an action plan and selectively chooses tools based on the user's prompt.
+These examples demonstrate how FitBeat autonomously creates an action plan and selectively chooses tools based on the user's prompt.
 
 ---
 
