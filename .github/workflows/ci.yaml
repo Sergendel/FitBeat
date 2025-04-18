@@ -16,6 +16,9 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Explicitly set the env variable
+
     steps:
     - name: Checkout code explicitly
       uses: actions/checkout@v4
