@@ -32,26 +32,26 @@ into personalized MP3 playlists.
 
 ## 🚀 **Agent's Internal Workflow (Pipeline)**
 
-FitBeat explicitly operates according to the following structured pipeline:
+FitBeat operates according to the following structured pipeline:
 
 ### 1. **Memory Initialization (User-Controlled, Optional)**
 
-At the start of each session, the agent explicitly asks if the user wants to use previously stored conversation context (memory):
+At the start of each session, the agent asks if the user wants to use previously stored conversation context (memory):
 
 ```
 ⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
 ```
 
-- If **"n"**, the agent explicitly combines previous summarized prompts with the current prompt, enhancing context.
-- If **"y"**, memory explicitly resets, starting fresh contextually.
+- If **"n"**, the agent combines previous summarized prompts with the current prompt, enhancing context.
+- If **"y"**, memory resets, starting fresh contextually.
 
 ### 2. **Action Plan Creation (LLM-based, Textual)**
 
-FitBeat explicitly analyzes the (combined or standalone) user prompt to generate a clear, human-readable textual action plan outlining necessary steps.
+FitBeat analyzes the (combined or standalone) user prompt to generate a clear, human-readable textual action plan outlining necessary steps.
 
 ### 3. **Action Plan Structuring (LLM-based, Structured JSON)**
 
-Translates the textual action plan explicitly into structured, machine-readable JSON actions, selected from the following available actions:
+Translates the textual action plan into structured, machine-readable JSON actions, selected from the following available actions:
 
 - **Analyze:** Convert user's prompt into numeric audio parameters.
 - **Filter:** Filter tracks from the dataset based on numeric audio parameters.
@@ -61,7 +61,7 @@ Translates the textual action plan explicitly into structured, machine-readable 
 
 ### 4. **Execute Actions (Agent Tools)**
 
-Executes each structured action explicitly using dedicated agent tools (listed in the tools section).
+Executes each structured action using dedicated agent tools (listed in the tools section).
 
 
 
@@ -79,9 +79,9 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
   Downloads refined tracks from YouTube (`yt-dlp`) and converts them to MP3 (`ffmpeg`).
 
 - **Summarize Playlist:**  
-  Provides a clear, explicit summary of the final recommended playlist.
+  Provides a summary of the final recommended playlist.
 
-> **The agent may selectively apply some (or all) of these tools, based explicitly on the action plan it autonomously generates.**
+> **The agent may selectively apply some (or all) of these tools, based on the action plan it autonomously generates.**
 
 
 ## 🧠 **Agent Memory (Persistent Context Management)**
@@ -95,12 +95,12 @@ FitBeat features persistent memory, enabling context preservation across multipl
   This ensures relevant context is maintained efficiently and clearly.
 
 - **User-Controlled Memory:**
-  At each session's start, FitBeat asks explicitly:
+  At each session's start, FitBeat asks:
   ```
   ⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
   ```
-  - Answering **"y"** explicitly clears memory and starts fresh.
-  - Answering **"n"** explicitly retains existing summarized memory.
+  - Answering **"y"** clears memory and starts fresh.
+  - Answering **"n"** retains existing summarized memory.
 
 ## 🧪 Testing and CI/CD
 
@@ -114,7 +114,7 @@ Ensure dependencies are installed:
 pip install -r requirements.txt
 ```
 
-Run tests explicitly with the command:
+Run tests with the command:
 
 ```bash
 pytest tests/
@@ -180,7 +180,7 @@ Demonstrates memory across sequential interactions:
 - **Next Prompt (with memory):** `"I forgot to say that we would probably dance during our date"`
 
 **Behavior:**
-- FitBeat explicitly considers both prompts, refining recommendations based on cumulative context.
+- FitBeat considers both prompts, refining recommendations based on cumulative context.
 - Agent autonomously decides which tools are required given the additional context.
 
 ---
@@ -242,7 +242,7 @@ Execute the orchestrator script with your desired prompt:
 python src/orchestrator.py
 ```
 
-The application will ask explicitly if you wish to continue using existing memory or clear it:
+The application will ask if you wish to continue using existing memory or clear it:
 
 ```
 Do you want to clear previous memory and start a new unrelated task? (y/n):
@@ -254,7 +254,7 @@ Do you want to clear previous memory and start a new unrelated task? (y/n):
 ---
 ## 👤 **Author**
 
-This project (**FitBeat**) was explicitly created and developed by **Sergey Gendel**.
+This project (**FitBeat**) was created and developed by **Sergey Gendel**.
 
 ---
 
@@ -262,4 +262,4 @@ This project (**FitBeat**) was explicitly created and developed by **Sergey Gend
 
 Downloading content directly from YouTube may violate YouTube's [Terms of Service](https://www.youtube.com/t/terms), specifically regarding unauthorized downloading and distribution.  
 **FitBeat** is provided for demonstration, educational, and personal use only.  
-Ensure you have explicit permission or rights to any content downloaded using this tool. **The author is not responsible for misuse or violations of applicable laws or terms of service.**
+Ensure you have permission or rights to any content downloaded using this tool. **The author is not responsible for misuse or violations of applicable laws or terms of service.**
