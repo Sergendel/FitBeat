@@ -102,10 +102,10 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
             print(f"Error processing {artist} - {title}: {e}")
 
     metadata_df = pd.DataFrame(metadata_records)
-    metadata_df.to_csv(METADATA_FILE, index=False, encoding='utf-8')
+    metadata_df.to_csv(CORPUS_METADATA_PATH, index=False, encoding='utf-8')
 
     print(f"\nCorpus creation complete. {len(metadata_records)} songs saved.")
-    print(f"Metadata explicitly saved in '{METADATA_FILE}'.")
+    print(f"Metadata explicitly saved in '{CORPUS_METADATA_PATH}'.")
 
 
 # Explicitly call your function with example parameters:
