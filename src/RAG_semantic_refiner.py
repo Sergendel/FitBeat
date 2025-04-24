@@ -1,4 +1,4 @@
-from corpus.embeddings.semantic_retrieval import retrieve_or_add_song
+from corpus.embeddings.semantic_retrieval import get_or_create_song_embedding
 from llm_executor import LLMExecutor
 from output_parser import OutputParser
 from prompt_engineer import PromptEngineer
@@ -21,7 +21,7 @@ class RAGSemanticRefiner:
 
             print(f"\nRetrieving semantic context for: {artist} - {title}")
 
-            song_text = retrieve_or_add_song(artist, title)
+            song_text = get_or_create_song_embedding(artist, title)
 
             if song_text:
                 #print(f"Semantic context retrieved for '{title}'.")

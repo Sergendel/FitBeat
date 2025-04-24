@@ -11,14 +11,14 @@ import config
 # Initialize the embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Load metadata
+# Load metadata for basic corpus
 df = pd.read_csv(config.CORPUS_METADATA_PATH)
 
 # Initialize ChromaDB
 chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
 collection = chroma_client.get_or_create_collection(name="genius_embeddings")
 
-# Generate embeddings for each song
+# Generate embeddings for each song in basic corpus
 for idx, row in df.iterrows():
     filepath = config.CORPUS_DIR / row['filename']
 
