@@ -19,10 +19,11 @@ into personalized MP3 playlists.
 - Converts user prompts into numeric audio features (tempo, energy, danceability, etc.).
 - Filters tracks from a large Kaggle [Spotify Tracks Dataset](https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset), containing over 114,000 annotated tracks.
 
-### 2.  Semantic Refinement (Lyrics & Context)
+### 2. Hybrid Semantic Ranking (Embeddings & RAG)
 
-- Retrieves lyrics and descriptions from [Genius](https://genius.com/)
-- Uses semantic analysis (RAG) to rank tracks according to emotional and contextual relevance.
+- Retrieves track contexts (lyrics and descriptions) from [Genius](https://genius.com/)
+- Initially ranks candidate tracks based on embedding similarity between the user's prompt embedding and the tracks' context embeddings, then selects the top-k candidates.
+- Performs further semantic refinement (RAG-based) using LLM-based semantic analysis to finalize rankings based on emotional and contextual relevance.
 
 ### 3. Final Track Retrieval and Conversion
 
@@ -55,7 +56,7 @@ Translates the textual action plan into structured, machine-readable JSON action
 
 - **Analyze:** Convert user's prompt into numeric audio parameters.
 - **Filter:** Filter tracks from the dataset based on numeric audio parameters.
-- **Rank:** Semantic ranking of candidate tracks using lyrics and descriptions (RAG-based).
+- **Refine:**  Hybrid Semantic Ranking (Embeddings & RAG) of tracks.
 - **Retrieve_and_Convert:** Download selected tracks from YouTube and convert to MP3.
 - **Summarize:** Generate and present a concise summary of the final playlist.
 
@@ -72,8 +73,8 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
 - **Filter Tracks (Numeric Filtering):**  
   Filters tracks from the Kaggle dataset using numeric audio parameters derived by the LLM.
 
-- **Semantic Ranking (RAG, LLM-based):**  
-  Ranks candidate tracks based on semantic relevance by analyzing lyrics and descriptions retrieved from Genius.com, using the LLM through (RAG).
+- **Hybrid Semantic Ranking (Embeddings & RAG):**  
+  Ranks candidate tracks based on semantic relevance by analyzing lyrics and descriptions retrieved from Genius.com, using the embeddings similaruty and LLM through (RAG).
 
 - **Retrieve and Convert:**  
   Downloads refined tracks from YouTube (`yt-dlp`) and converts them to MP3 (`ffmpeg`).
