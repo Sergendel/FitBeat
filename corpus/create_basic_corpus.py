@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import config
-from pathlib import Path
+from src.song_utils import generate_song_context
 
 
 # Load environment variables
@@ -23,18 +23,12 @@ CORPUS_METADATA_PATH = config.CORPUS_METADATA_PATH
 os.makedirs(CORPUS_DIR, exist_ok=True)
 
 
-def get_song_description(song_url):
-    response = requests.get(song_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    description_div = soup.find('div', class_=lambda x: x and x.startswith('RichText__Container'))
-    return description_div.get_text(separator='\n', strip=True) if description_div else "No description found."
-
 
 def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, valence=None, track_genre=None,
                         max_songs=100):
     df = pd.read_csv(DATASET_PATH)
 
-    # Explicitly build filters
+    # Build filters
     filters = []
     if tempo is not None:
         filters.append(df['tempo'] > tempo)
@@ -49,14 +43,14 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
     if track_genre is not None:
         filters.append(df['track_genre'].str.lower() == track_genre.strip().lower())
 
-    # Apply filters explicitly
+    # Apply filters
     if filters:
-        filtered_df = df
-        for f in filters:
-            filtered_df = filtered_df[f]
+        combined_filter = filters[0]
+        for f in filters[1:]:
+            combined_filter &= f
+        filtered_df = df[combined_filter]
     else:
-        filtered_df = df  # if no filter, use full dataset clearly
-
+        filtered_df = df
     filtered_df = filtered_df.drop_duplicates(subset=['track_name', 'artists']).head(max_songs)
 
     metadata_records = []
@@ -67,19 +61,15 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
         print(f"Processing: {artist} - {title}")
 
         try:
-            song = genius.search_song(title, artist)
-            if song:
+            # Get song context
+            song_context = generate_song_context(artist, title)
+
+            if song_context:
                 filename = f"{artist} - {title}.txt"
                 file_path = os.path.join(CORPUS_DIR, filename)
 
-                description = get_song_description(song.url)
-
                 with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(f"Title: {song.title}\n")
-                    f.write(f"Artist: {song.artist}\n")
-                    f.write(f"Album: {song.album}\n\n")
-                    f.write(f"Description:\n{description}\n\n")
-                    f.write(f"Lyrics:\n{song.lyrics}\n")
+                    f.write(song_context)
 
                 print(f"Track {i} Saved: {filename}")
 
@@ -94,7 +84,6 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
                     'valence': track['valence'],
                     'genre': track['track_genre']
                 })
-
             else:
                 print(f"Not found on Genius: {artist} - {title}")
 

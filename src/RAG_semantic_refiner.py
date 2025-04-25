@@ -3,6 +3,12 @@ from llm_executor import LLMExecutor
 from output_parser import OutputParser
 from prompt_engineer import PromptEngineer
 import pandas as pd
+from corpus.embeddings.semantic_retrieval import embed_user_prompt
+import chromadb
+import config
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 class RAGSemanticRefiner:
     def __init__(self):
@@ -10,16 +16,22 @@ class RAGSemanticRefiner:
         self.parser = OutputParser()
         self.prompt_engineer = PromptEngineer()
 
-    def retrieve_semantic_context(self, tracks):
+        # Initialize ChromaDB
+        chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+        self.collection = chroma_client.get_or_create_collection(name="genius_embeddings")
+
+        self.embed_user_prompt = embed_user_prompt
+
+    def retrieve_semantic_context(self, tracks, verbose=False):
         """
-        Retrieves semantic context explicitly for each track.
+        Retrieves semantic context for each track.
         """
         semantic_contexts = []
         for idx, track in tracks.iterrows():
             artist = track['artists'].split(';')[0].strip()
             title = track['track_name']
 
-            print(f"\nRetrieving semantic context for: {artist} - {title}")
+            if verbose: print(f"\nRetrieving semantic context for: {artist} - {title}")
 
             song_text = get_or_create_song_embedding(artist, title)
 
@@ -31,7 +43,7 @@ class RAGSemanticRefiner:
                     'context': song_text
                 })
             else:
-                print(f"No semantic context found for '{title}'. Proceeding without semantic context.")
+                if verbose: print(f"No semantic context found for '{title}'. Proceeding without semantic context.")
                 semantic_contexts.append({
                     'artist': artist,
                     'title': title,
@@ -40,9 +52,9 @@ class RAGSemanticRefiner:
 
         return semantic_contexts
 
-    def reorder_tracks_by_semantic_ranking(self, original_tracks, ranked_playlist):
+    def reorder_tracks_by_semantic_ranking(self, original_tracks, ranked_playlist, verbose=False):
         """
-        Reorders tracks explicitly based on semantic ranking.
+        Reorders tracks based on semantic ranking.
         """
         ranked_df = pd.DataFrame(ranked_playlist)
         ranked_df['title'] = ranked_df['title'].str.lower().str.strip()
@@ -58,11 +70,11 @@ class RAGSemanticRefiner:
 
         missing_tracks = set(ranked_df['title']) - set(filtered_df['normalized_title'])
         if missing_tracks:
-            print(f"Missing tracks after merge: {missing_tracks}")
+            if verbose: print(f"Missing tracks after merge: {missing_tracks}")
 
         return filtered_df
 
-    def refine_tracks_with_rag(self, user_prompt, tracks, folder_name):
+    def refine_tracks_with_rag(self, user_prompt, tracks, folder_name, embedding_top_k=None, verbose = False):
         """
     Refines and ranks a list of tracks  using RAG based on semantic context (lyrics and descriptions).
 
@@ -97,12 +109,12 @@ class RAGSemanticRefiner:
         - Ensures robustness against missing or incomplete LLM responses, proceeding with original data if refinement fails.
 
     """
-        print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n"
+        if verbose: print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n"
               "Context will be loaded from the local corpus if available; otherwise, it will be retrieved dynamically from the Genius API.")
 
         refined_tracks_context = self.retrieve_semantic_context(tracks)
-        print(f"\n\n Semantic context retrieved.")
-        print("\n\n\nConstructing refined prompt — combining user request and retrieved semantic contexts...")
+        if verbose: print(f"\n\n Semantic context retrieved.")
+        if verbose: print("\n\n\nConstructing refined prompt — combining user request and retrieved semantic contexts...")
         refined_prompt = self.prompt_engineer.construct_refined_prompt(user_prompt, refined_tracks_context)
         messages = refined_prompt.format_messages(user_prompt=user_prompt)
 
@@ -121,3 +133,69 @@ class RAGSemanticRefiner:
             print("Refinement failed; proceeding with original tracks.")
 
         return tracks, folder_name
+
+
+    def rank_tracks_by_embedding_similarity(self, user_prompt, tracks, top_k=50, verbose = False):
+
+        # Step 1 Ensure embeddings exist
+        for artist, title in zip(tracks['artists'], tracks['track_name']):
+            get_or_create_song_embedding(artist, title)
+
+        # Step 2 Embed user prompt explicitly
+        user_embedding = self.embed_user_prompt(user_prompt)
+
+        # Step 3  Construct ChromaDB metadata filter
+        track_metadata_conditions = [
+            {"$and": [{"artists": {"$eq": artist}}, {"track_name": {"$eq": title}}]}
+            for artist, title in zip(tracks['artists'], tracks['track_name'])
+        ]
+
+        # Step 4 explicitly: Perform ChromaDB semantic embedding search
+        results = self.collection.query(
+            query_embeddings=[user_embedding],
+            n_results=min(top_k, len(track_metadata_conditions)),
+            where={"$or": track_metadata_conditions},
+            include=['metadatas', 'distances']
+        )
+
+        retrieved_metadatas = results['metadatas'][0]
+        retrieved_distances = results['distances'][0]
+
+        if not retrieved_metadatas:
+            if verbose: print("No tracks matched the metadata conditions.")
+            return pd.DataFrame([])
+
+        # Step 5 : Build DataFrame from retrieved metadata
+        embedding_df = pd.DataFrame(retrieved_metadatas)
+        embedding_df['distance'] = retrieved_distances
+
+        # Step 6 : Merge with numeric-filtered tracks
+        final_df = embedding_df.merge(tracks, on=['artists', 'track_name'], how='left')
+
+        # Step 7: Sort final DataFrame by semantic distance
+        final_df.sort_values('distance', inplace=True)
+        final_df.reset_index(drop=True, inplace=True)
+
+        # limit to top_k tracks
+        final_df = final_df.head(top_k)
+
+        return final_df
+
+    def hybrid_refine_tracks(self, user_prompt, tracks,folder_name = "hybrid_recommendations", embedding_top_k=10):
+
+        print("\nRanking tracks using the hybrid method:"
+              f"\n   1. Embedding Ranking: Rank candidate tracks based on embedding similarity to the user's prompt embedding and select the top {embedding_top_k} tracks."
+              "\n   2. Refine the ranking of selected tracks using LLM-based semantic relevance (RAG) to the user's prompt.\n")
+
+        # Step 1: rank_tracks_by_embedding_similarity
+        print(f"----- Performing Embedding Ranking...  -------")
+        embedding_filtered_tracks = self.rank_tracks_by_embedding_similarity(
+            user_prompt, tracks, top_k=embedding_top_k
+        )
+        print(f"\n\n----- Performing LLM-based semantic relevance ranking ----- ...")
+        # Step 2: Perform final LLM ranking (existing function)
+        final_ranked_tracks, folder_name = self.refine_tracks_with_rag(
+            user_prompt, embedding_filtered_tracks, folder_name =folder_name
+        )
+
+        return final_ranked_tracks, folder_name

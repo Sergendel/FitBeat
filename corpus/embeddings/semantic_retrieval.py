@@ -5,6 +5,9 @@ from sentence_transformers import SentenceTransformer
 import lyricsgenius
 import os
 from dotenv import load_dotenv
+import pandas as pd
+from src.song_utils import generate_song_context
+
 
 # Load environment
 load_dotenv()
@@ -21,7 +24,7 @@ chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
 collection = chroma_client.get_or_create_collection(name="genius_embeddings")
 
 # Initialize Genius API
-genius = lyricsgenius.Genius(os.getenv("GENIUS_API_KEY"), timeout=15)
+genius = lyricsgenius.Genius(os.getenv("GENIUS_API_KEY"), timeout=15, verbose=False)
 
 # find similar tracks (semantic) to user provided track (name and artist)
 # TODO: PREPARATION FOR "Semantic_Search" ACTION,  MEANWHILE NOT IN USE  !!!
@@ -34,16 +37,12 @@ def find_semantically_similar_songs(query, top_k=5):
         query (str):
             A textual query describing desired characteristics or examples of the tracks.
             Examples: "calm instrumental music", "songs similar to 'Blinding Lights'".
-
-        top_k (int, optional, default=5):
-            The number of similar songs to return.
+            top_k (int, optional, default=5): The number of similar songs to return.
 
     Returns:
         tuple:
-            - documents (list[str]):
-                Lyrics and descriptions of the similar songs.
-            - metadatas (list[dict]):
-                Associated metadata (artist, title, genre) for each song.
+            - documents (list[str]): Context of the similar songs.
+            - metadatas (list[dict]): Associated metadata (artist, title, genre) for each song.
 
     Example:
          documents, metadata = find_semantically_similar_songs("calm piano music", top_k=3)
@@ -57,55 +56,50 @@ def find_semantically_similar_songs(query, top_k=5):
     )
     return results['documents'][0], results['metadatas'][0]
 
+def embed_user_prompt(user_prompt):
+    return model.encode(user_prompt).tolist()
 
 
-def get_or_create_song_embedding(artist: object, title: object) -> object:
+def get_or_create_song_embedding(artist: str, title: str, verbose=False) -> object:
     """
-        Get the embedding and lyrics for a given song from the local ChromaDB corpus.
-        If the song isn't available locally, dynamically fetch lyrics from Genius API, generate the embedding,
+        Get the embedding and context for a given song from the local ChromaDB corpus.
+        If the song isn't available locally, dynamically fetch context from Genius API, generate the embedding,
         and add it to the corpus.
 
         Parameters:
-            artist (str):
-                Artist name associated with the song.
-            title (str):
-                Song title.
+            artist (str): Artist name associated with the song.
+            title (str): Song title.
 
         Returns:
-            str or None:
-                The lyrics of the song if found or fetched, else e None.
+            str or None: The context of the song if found or fetched, else e None.
         """
-    
+
     song_id = f"{artist} - {title}.txt"
     existing = collection.get(ids=[song_id])
 
     if existing['ids']:
-        print("Song found in corpus.")
+        if verbose: print("Song found in collection.")
         return existing['documents'][0]
 
-    print("Song not found. Fetching dynamically from Genius API...")
-    song = genius.search_song(title, artist)
+    if verbose: print("Song not found. Fetching dynamically from Genius API...")
 
-    # if song already in embedding:
-    if song:
-        song_text = song.lyrics
-
-        embedding = model.encode(song_text).tolist()
+    # generate song context
+    song_context = generate_song_context(artist, title)
+    if song_context:
+        embedding = model.encode(song_context).tolist()
         collection.add(
             ids=[song_id],
             embeddings=[embedding],
-            documents=[song_text],
-            metadatas=[{"artist": artist, "title": title}]
+            documents=[song_context],
+            metadatas=[{"artists": artist, "track_name": title}]
         )
-
-        print("Added dynamically to corpus!")
-        return song_text
-
-    # On-the-fly embedding:
-    # TODO: add the song to config.CORPUS_METADATA_PATH csv file
+        if verbose: print(f"Embedding added to corpus for: '{artist} - {title}'.")
+        # TODO: add song to corpus_metadata.csv if needed
+        return song_context
     else:
-        print(f"Genius doesn't have '{title}' by {artist}. Falling back to numeric filtering.")
+        if verbose: print( f"Genius does not have '{title}' by '{artist}'. Falling back to numeric filtering.")
         return None
+
 
 if __name__ == "__main__":
     query = "calm instrumental piano music"
@@ -113,13 +107,13 @@ if __name__ == "__main__":
 
     print("Retrieved Top Songs:")
     for doc, meta in zip(documents, metadata):
-        print(f"- {meta['artist']} - {meta['title']} ({meta['genre']})")
+        print(f"- {meta['artists']} - {meta['track_name']} ({meta['genre']})")
 
     # Retrieve on-the-fly:
-    artist = "Coldplay"
-    title = "Adventure of a Lifetime"
+    artists = "Coldplay"
+    track_name = "Adventure of a Lifetime"
 
-    doc = get_or_create_song_embedding(artist, title)
+    doc = get_or_create_song_embedding(artists, track_name)
     if doc:
-        print(f"Retrieved song : {title}")
+        print(f"Retrieved song : {track_name}")
 
