@@ -46,15 +46,15 @@ jobs:
     - name: Explicitly Test OpenAI API Connectivity
       run: |
         pip install openai
-        python -c "\
-import os, openai\
-openai.api_key=os.getenv('OPENAI_API_KEY')\
-try:\
-    models = openai.Model.list()\
-    print('Explicit API Call Successful:', models)\
-except Exception as e:\
-    print('Explicit OpenAI API call error:', e)\
-    exit(1)\
+        python -c "
+import os, openai
+openai.api_key=os.getenv('OPENAI_API_KEY')
+try:
+    models = openai.Model.list()
+    print('Explicit API Call Successful:', models)
+except Exception as e:
+    print('Explicit OpenAI API call error:', e)
+    exit(1)
 "
 
     - name: Run explicit unit tests with pytest
