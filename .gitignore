@@ -32,3 +32,4 @@ genius_corpus/
 
 # included
 !requirements.txt
+!.env.example

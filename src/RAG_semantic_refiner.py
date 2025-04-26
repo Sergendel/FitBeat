@@ -6,8 +6,6 @@ import pandas as pd
 from corpus.embeddings.semantic_retrieval import embed_user_prompt
 import chromadb
 import config
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 class RAGSemanticRefiner:

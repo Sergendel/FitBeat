@@ -226,13 +226,26 @@ cd FitBeat
 pip install -r requirements.txt
 ```
 
-### ✅ **3. Set Up Environment Variables**
+### ✅ **3. API Keys Configurations**
 
-Create a `.env` file in the root directory with your API keys:
+To run this project, you must set up API keys as environment variables:
 
-```bash
+**Step 1:** Copy the .env.example file and rename it to .env:
+
+bash
+cp .env.example .env
+
+**Step 2:** Edit .env and insert your API keys:
+bash
 OPENAI_API_KEY="your-openai-api-key"
-GENIUS_API_KEY='4wrpRJc6wtzjNstx1LmnTDreTZ_khfbCadjQpMq2WXjiEnb1OmGTaWhk6EXfL-Ad'
+GENIUS_API_KEY="your-genius-api-key"
+
+Getting API Keys: 
+
+OpenAI: Obtain your API key here: https://platform.openai.com/api-keys
+Genius: Obtain your free API key here: https://docs.genius.com/#/getting-started-h1
+
+Note: Genius API keys are free and publicly available.
 ```
 
 ### ✅ **4. Run the Application**
