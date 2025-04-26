@@ -2,7 +2,7 @@ import pytest
 from src.user_prompt_utils import prompt_to_audio_params
 from src.filtering_utils import filter_tracks_by_audio_params
 import pandas as pd
-
+import os
 
 @pytest.fixture
 def sample_dataset():
@@ -14,6 +14,11 @@ def sample_dataset():
         'danceability': [0.6, 0.8],
         'popularity': [50, 80]
     })
+
+
+def test_explicitly_check_env():
+    api_key = os.getenv("OPENAI_API_KEY")
+    assert api_key is not None, "Explicit Error: API key not loaded explicitly into pytest environment."
 
 def test_prompt_to_audio_params():
     params, folder_name = prompt_to_audio_params("relaxing music")
