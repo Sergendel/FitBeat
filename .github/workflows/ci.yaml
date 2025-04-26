@@ -48,10 +48,11 @@ jobs:
           pip install openai
           python - <<EOF
           import os
-          import openai
+          from openai import OpenAI
           openai.api_key = os.getenv('OPENAI_API_KEY')
           try:
-              models = openai.Model.list()
+              client = OpenAI(api_key="your-key")
+              models = client.models.list()
               print('Explicit API Call Successful:', models)
           except Exception as e:
               print('Explicit OpenAI API call error:', e)
