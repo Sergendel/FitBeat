@@ -190,7 +190,7 @@ class RAGSemanticRefiner:
         embedding_filtered_tracks = self.rank_tracks_by_embedding_similarity(
             user_prompt, tracks, top_k=embedding_top_k
         )
-        print(f"\n\n----- Performing LLM-based semantic relevance ranking ----- ...")
+        print(f"----- Performing LLM-based semantic relevance ranking ----- ...\n\n")
         # Step 2: Perform final LLM ranking (existing function)
         final_ranked_tracks, folder_name = self.refine_tracks_with_rag(
             user_prompt, embedding_filtered_tracks, folder_name =folder_name

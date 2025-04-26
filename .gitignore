@@ -16,12 +16,11 @@ venv/
 # IDE directories
 .idea/
 .vscode/
+
 # Data and temporary files
 .ipynb_checkpoints/
 logs/
 tmp/
-
-
 
 # Custom project-specific ignores (if applicable)
 .utils/
@@ -29,7 +28,9 @@ audio/downloaded_tracks/
 genius_corpus/
 *.mp3
 *.txt
+*.md
 
 # included
 !requirements.txt
 !.env.example
+!README.md
