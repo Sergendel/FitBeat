@@ -1,5 +1,34 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Sensitive information
 .env
-audio/downloaded_tracks
-corpus/genius_corpus/
-prompt_review
-.utils
+.env.*
+.secrets/
+
+# IDE directories
+.idea/
+.vscode/
+# Data and temporary files
+.ipynb_checkpoints/
+logs/
+tmp/
+
+
+
+# Custom project-specific ignores (if applicable)
+.utils/
+audio/downloaded_tracks/
+genius_corpus/
+*.mp3
+*.txt
+
+# included
+!requirements.txt

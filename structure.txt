@@ -91,6 +91,8 @@
 |   |   |   |-- 09 - The Police - Every Breath You Take.mp3
 |   |   |-- romantic_date
 |   |   |   |-- 01 - Grover Washington, Jr. - Just the Two of Us.mp3
+|   |   |   |-- 01 - Nirvana - Dumb.mp3
+|   |   |   |-- 01 - Nirvana - Dumb.webm
 |   |   |   |-- 02 - Grover Washington, Jr.;Bill Withers - Just the Two of Us (feat. Bill Withers).mp3
 |   |   |   |-- 03 - Lucky Ali - O Sanam.mp3
 |   |   |   |-- 04 - Télépopmusik;Angela McCluskey - Breathe.mp3
@@ -126,7 +128,9 @@
 |   |   |   |-- 01 - A.R. Rahman;Javed Ali;Mohit Chauhan - Kun Faya Kun.mp3
 |   |   |   |-- 01 - Ajay-Atul - Zingaat.mp3
 |   |   |   |-- 01 - Alexi Murdoch - All My Days.mp3
+|   |   |   |-- 01 - Bee Gees - To Love Somebody.mp3
 |   |   |   |-- 01 - Begum Akhtar - Ae Mohabbat Tere Anjaam Pe Rona Aya.mp3
+|   |   |   |-- 01 - Ben Howard - She Treats Me Well.mp3
 |   |   |   |-- 01 - Bill Withers - Ain't No Sunshine.mp3
 |   |   |   |-- 01 - Black - Wonderful Life.mp3
 |   |   |   |-- 01 - Doja Cat - Woman.mp3
@@ -135,10 +139,12 @@
 |   |   |   |-- 01 - Grover Washington, Jr. - Just the Two of Us.mp3
 |   |   |   |-- 01 - HYBS - Would You Mind.mp3
 |   |   |   |-- 01 - Jagjit Singh - Hothon Se Chhu Lo Tum - From Prem Geet.mp3
+|   |   |   |-- 01 - Jakob - Velvet Light.mp3
 |   |   |   |-- 01 - Kishore Kumar;R. D. Burman - Ek Ajnabee Haseena Se.mp3
 |   |   |   |-- 01 - Marvin Gaye;Tammi Terrell - Ain't No Mountain High Enough.mp3
 |   |   |   |-- 01 - Men I Trust - Show Me How.mp3
 |   |   |   |-- 01 - Nusrat Fateh Ali Khan - Afreen Afreen.mp3
+|   |   |   |-- 01 - Prateek Kuhad - 100 words.mp3
 |   |   |   |-- 01 - Rels B - cómo dormiste_.mp3
 |   |   |   |-- 01 - Shawn Mendes - Treat You Better.mp3
 |   |   |   |-- 01 - The Emotions - Best of My Love.mp3
@@ -149,6 +155,7 @@
 |   |   |   |-- 02 - Asha Bhosle;Mohammed Rafi;R. D. Burman - Chura Liya Hai Tumne Jo Dil Ko.mp3
 |   |   |   |-- 02 - Bad Bunny;Buscabulla - Andrea.mp3
 |   |   |   |-- 02 - beabadoobee - the perfect pair.mp3
+|   |   |   |-- 02 - Ben Howard - She Treats Me Well.mp3
 |   |   |   |-- 02 - Beyoncé - CUFF IT.mp3
 |   |   |   |-- 02 - Bill Withers - Ain't No Sunshine.mp3
 |   |   |   |-- 02 - Billie Eilish - I Didn't Change My Number.mp3
@@ -157,16 +164,20 @@
 |   |   |   |-- 02 - Grover Washington, Jr. - Just the Two of Us.mp3
 |   |   |   |-- 02 - Grover Washington, Jr.;Bill Withers - Just the Two of Us (feat. Bill Withers).mp3
 |   |   |   |-- 02 - Grup Yorum - Sevda Türküsü.mp3
+|   |   |   |-- 02 - Jakob - Velvet Light.mp3
 |   |   |   |-- 02 - Jakob;Clairo - You Might Be Sleeping.mp3
 |   |   |   |-- 02 - Jazzinuf;Etymology Records - Soul Mates.mp3
+|   |   |   |-- 02 - Jorge Drexler - Club Tonight - Cara B.mp3
 |   |   |   |-- 02 - Justin Bieber - Love Yourself.mp3
 |   |   |   |-- 02 - Kenny Rogers - The Gambler.mp3
 |   |   |   |-- 02 - Nick Drake - One Of These Things First.mp3
+|   |   |   |-- 02 - Nohidea;Ben Beal;sophie meiers - Smile.mp3
 |   |   |   |-- 02 - Otis Redding - (Sittin' On) the Dock of the Bay.mp3
 |   |   |   |-- 02 - Prateek Kuhad - 100 words.mp3
 |   |   |   |-- 02 - The Internet;KAYTRANADA - Girl (feat. KAYTRANADA).mp3
 |   |   |   |-- 02 - The Temptations - My Girl.mp3
 |   |   |   |-- 02 - Tomppabeats - Will You Stay Here with Me.mp3
+|   |   |   |-- 02 - Tricky - Overcome.mp3
 |   |   |   |-- 03 - Arctic Monkeys - Why'd You Only Call Me When You're High_.mp3
 |   |   |   |-- 03 - beabadoobee - the perfect pair.mp3
 |   |   |   |-- 03 - Bill Withers - Ain't No Sunshine.mp3
@@ -174,9 +185,11 @@
 |   |   |   |-- 03 - Black - Wonderful Life.mp3
 |   |   |   |-- 03 - Charlie Rich - Behind Closed Doors.mp3
 |   |   |   |-- 03 - Clairo - Sofia.mp3
+|   |   |   |-- 03 - CoComelon - CoComelon Theme Tune.mp3
 |   |   |   |-- 03 - CORBAL;Shiloh Dynasty;itssvd - Your Love Makes Me Depressed.mp3
 |   |   |   |-- 03 - Dolly Parton - Jolene.mp3
 |   |   |   |-- 03 - Jakob - Velvet Light.mp3
+|   |   |   |-- 03 - Jakob;Clairo - You Might Be Sleeping.mp3
 |   |   |   |-- 03 - Jinsang - Affection.mp3
 |   |   |   |-- 03 - John Denver - Take Me Home, Country Roads.mp3
 |   |   |   |-- 03 - Lauv - I Like Me Better.mp3
@@ -184,18 +197,24 @@
 |   |   |   |-- 03 - Lucky Ali - O Sanam.mp3
 |   |   |   |-- 03 - Omah Lay - Bad Influence.mp3
 |   |   |   |-- 03 - Omah Lay - temptations.mp3
+|   |   |   |-- 03 - Prateek Kuhad - 100 words.mp3
 |   |   |   |-- 03 - Red Garland;Paul Chambers;Art Taylor - Almost Like Being In Love.mp3
 |   |   |   |-- 03 - Simon & Garfunkel - The Boxer.mp3
 |   |   |   |-- 03 - The Doobie Brothers - Listen to the Music.mp3
 |   |   |   |-- 03 - The Internet;KAYTRANADA - Girl (feat. KAYTRANADA).mp3
 |   |   |   |-- 03 - The Temptations - My Girl.mp3
+|   |   |   |-- 03 - Tomppabeats - Will You Stay Here with Me.mp3
 |   |   |   |-- 04 - 80purppp - Soleil.mp3
+|   |   |   |-- 04 - Ajay-Atul - Zingaat.mp3
+|   |   |   |-- 04 - Amy Winehouse - Me & Mr Jones.mp3
 |   |   |   |-- 04 - Billie Eilish - NDA.mp3
 |   |   |   |-- 04 - Billie Eilish;Justin Bieber - bad guy (with Justin Bieber).mp3
 |   |   |   |-- 04 - Bruce Springsteen - I'm On Fire.mp3
 |   |   |   |-- 04 - CORBAL;Shiloh Dynasty;itssvd - Your Love Makes Me Depressed.mp3
 |   |   |   |-- 04 - Ed Sheeran - Shape of You.mp3
 |   |   |   |-- 04 - Elton John - I'm Still Standing.mp3
+|   |   |   |-- 04 - Emitt Rhodes - Lullabye.mp3
+|   |   |   |-- 04 - George Howard - Love Will Follow.mp3
 |   |   |   |-- 04 - HYBS - Would You Mind.mp3
 |   |   |   |-- 04 - Ilaiyaraaja;S. Janaki - Sangathil Padatha.mp3
 |   |   |   |-- 04 - Imagine Dragons - Bones.mp3
@@ -212,12 +231,16 @@
 |   |   |   |-- 04 - Simon & Garfunkel - Mrs. Robinson - From _The Graduate_ Soundtrack.mp3
 |   |   |   |-- 04 - Simon & Garfunkel - The Boxer.mp3
 |   |   |   |-- 04 - SLKBTS - sunday am.mp3
+|   |   |   |-- 04 - Vieux Farka Touré;Khruangbin - Diarabi.mp3
 |   |   |   |-- 04 - Wham! - Wake Me Up Before You Go-Go.mp3
+|   |   |   |-- 05 - A.R. Rahman;Javed Ali;Mohit Chauhan - Kun Faya Kun.mp3
 |   |   |   |-- 05 - Ali Zafar - Jhoom - R&B Mix.mp3
 |   |   |   |-- 05 - Ben Howard - She Treats Me Well.mp3
 |   |   |   |-- 05 - Billie Eilish - bad guy.mp3
 |   |   |   |-- 05 - Billie Eilish - NDA.mp3
+|   |   |   |-- 05 - Bonobo;Andreya Triana - Stay The Same.mp3
 |   |   |   |-- 05 - Buffalo Springfield - For What It's Worth.mp3
+|   |   |   |-- 05 - Charlie Rich - Behind Closed Doors.mp3
 |   |   |   |-- 05 - CoComelon - CoComelon Theme Tune.mp3
 |   |   |   |-- 05 - Dolly Parton - Jolene.mp3
 |   |   |   |-- 05 - Elton John - I'm Still Standing.mp3
@@ -226,6 +249,7 @@
 |   |   |   |-- 05 - Ivan Rebroff;Balalaika-Ensemble Troika - Katyusha.mp3
 |   |   |   |-- 05 - J. Cole - No Role Modelz.mp3
 |   |   |   |-- 05 - John Denver - Take Me Home, Country Roads.mp3
+|   |   |   |-- 05 - Koop - Koop Island Blues.mp3
 |   |   |   |-- 05 - Lucky Ali - O Sanam.mp3
 |   |   |   |-- 05 - Maroon 5 - Memories.mp3
 |   |   |   |-- 05 - Nirvana - Dumb.mp3
@@ -242,8 +266,12 @@
 |   |   |   |-- 06 - Ali Zafar - Jhoom - R&B Mix.mp3
 |   |   |   |-- 06 - Billie Eilish - bad guy.mp3
 |   |   |   |-- 06 - Billie Eilish - NDA.mp3
+|   |   |   |-- 06 - Blind Melon - Change.mp3
 |   |   |   |-- 06 - Bruce Springsteen - I'm On Fire.mp3
+|   |   |   |-- 06 - Charlie Rich - Behind Closed Doors.mp3
 |   |   |   |-- 06 - dhruv - moonlight.mp3
+|   |   |   |-- 06 - DJ Shadow - Midnight In A Perfect World.mp3
+|   |   |   |-- 06 - Grup Yorum - Sevda Türküsü.mp3
 |   |   |   |-- 06 - Justin Bieber - Love Yourself.mp3
 |   |   |   |-- 06 - Kenny Rogers - The Gambler.mp3
 |   |   |   |-- 06 - KevGee - Dolce N Gabbana.mp3
@@ -263,6 +291,7 @@
 |   |   |   |-- 07 - Billie Eilish - I Didn't Change My Number.mp3
 |   |   |   |-- 07 - Bruce Springsteen - I'm On Fire.mp3
 |   |   |   |-- 07 - Clairo - Amoeba.mp3
+|   |   |   |-- 07 - Jakob;Clairo - You Might Be Sleeping.mp3
 |   |   |   |-- 07 - John Denver - Take Me Home, Country Roads.mp3
 |   |   |   |-- 07 - Kid Koala - _Was He Slow__ - Music From The Motion Picture Baby Driver.mp3
 |   |   |   |-- 07 - Mama Gecko - Backrest.mp3
@@ -270,9 +299,11 @@
 |   |   |   |-- 07 - PLÜM - Slow Down.mp3
 |   |   |   |-- 07 - Portishead - Wandering Star.mp3
 |   |   |   |-- 07 - Rauw Alejandro;Lyanno;Brray - LOKERA.mp3
+|   |   |   |-- 07 - Simon & Garfunkel - The Boxer.mp3
 |   |   |   |-- 07 - Steely Dan - Dirty Work.mp3
 |   |   |   |-- 07 - The Police - Every Breath You Take.mp3
 |   |   |   |-- 07 - Timmies;Shiloh Dynasty - Loosing Interest.mp3
+|   |   |   |-- 07 - Tribal Rain - Sunyata.mp3
 |   |   |   |-- 07 - Unknown Mortal Orchestra - Hunnybee.mp3
 |   |   |   |-- 07 - Zackey Force Funk - Rnd1.mp3
 |   |   |   |-- 07 - [bsd.u] - French Inhale.webm
@@ -281,12 +312,16 @@
 |   |   |   |-- 08 - Bennett Coast - Sunsick.mp3
 |   |   |   |-- 08 - Bruce Springsteen - I'm On Fire.mp3
 |   |   |   |-- 08 - Charlie Puth;Selena Gomez - We Don't Talk Anymore (feat. Selena Gomez).mp3
+|   |   |   |-- 08 - CoComelon - CoComelon Theme Tune.mp3
 |   |   |   |-- 08 - Elvis Presley - Trouble.mp3
 |   |   |   |-- 08 - Grup Yorum - Sevda Türküsü.mp3
+|   |   |   |-- 08 - Left Lane Cruiser - Juice To Get Loose.mp3
 |   |   |   |-- 08 - Left spectrum of the brain - Brainstem.mp3
 |   |   |   |-- 08 - Left spectrum of the brain - Brainstem.webm
 |   |   |   |-- 08 - Omah Lay - Bad Influence.mp3
 |   |   |   |-- 08 - PHARAOH - Мой кайф.mp3
+|   |   |   |-- 08 - Phosphorescent - Song for Zula.mp3
+|   |   |   |-- 08 - Powfu;Jaden;Sarcastic Sounds - snowflake (feat. Jaden & Sarcastic Sounds).mp3
 |   |   |   |-- 08 - Red Garland;Paul Chambers;Art Taylor - Almost Like Being In Love.mp3
 |   |   |   |-- 08 - Sickflip;Mismatched;Raitila Rajasthan - Mehmaan.mp3
 |   |   |   |-- 08 - TEMPOREX - Numbers.mp3
@@ -298,9 +333,11 @@
 |   |   |   |-- 09 - Ali Zafar - Jhoom - R&B Mix.mp3
 |   |   |   |-- 09 - Armani White - BILLIE EILISH..mp3
 |   |   |   |-- 09 - Atif Aslam;Chinmayi - Main Rang Sharbaton Ka (Lofi Mix).mp3
+|   |   |   |-- 09 - B.B. King - The Thrill Is Gone.mp3
 |   |   |   |-- 09 - Bad Bunny;The Marías - Otro Atardecer.mp3
 |   |   |   |-- 09 - Bhimsen Joshi - Indrayani Kathi.mp3
 |   |   |   |-- 09 - Buffalo Springfield - For What It's Worth.mp3
+|   |   |   |-- 09 - CoComelon - CoComelon Theme Tune.mp3
 |   |   |   |-- 09 - Crate Diggers - Lucy Dreamer.mp3
 |   |   |   |-- 09 - Grover Washington, Jr.;Bill Withers - Just the Two of Us (feat. Bill Withers).mp3
 |   |   |   |-- 09 - Idealism - Controlla.mp3
@@ -311,8 +348,10 @@
 |   |   |   |-- 09 - Sickflip;Mismatched;Raitila Rajasthan - Mehmaan.mp3
 |   |   |   |-- 09 - Steely Dan - Dirty Work.mp3
 |   |   |   |-- 09 - Type.Raw;Filliboom - Sleep Music.mp3
+|   |   |   |-- 09 - Vluestar - Weed Wit U.mp3
 |   |   |   |-- 09 - Zmeyev;Screen Jazzmaster - Distant Stars.mp3
 |   |   |   |-- 10 - Anirudh Ravichander - Lokiverse - Background Score.mp3
+|   |   |   |-- 10 - Bennett Coast - Sunsick.mp3
 |   |   |   |-- 10 - CoComelon - CoComelon Theme Tune.mp3
 |   |   |   |-- 10 - Eminem - Without Me.mp3
 |   |   |   |-- 10 - L'Impératrice - Agitations tropicales.mp3
@@ -351,7 +390,7 @@
 |   |-- embeddings
 |   |   |-- generate_embeddings.py
 |   |   |-- genius_corpus_db
-|   |   |   |-- 458a7863-6841-4373-a953-e6d7a93a6c88
+|   |   |   |-- bed7d2a4-1f1d-40a3-a3d7-04f24c244c55
 |   |   |   |   |-- data_level0.bin
 |   |   |   |   |-- header.bin
 |   |   |   |   |-- length.bin
@@ -582,6 +621,7 @@
 |   |-- playlist_summary.py
 |   |-- prompt_engineer.py
 |   |-- RAG_semantic_refiner.py
+|   |-- song_utils.py
 |   |-- track_downloader.py
 |   |-- user_prompt_utils.py
 |   |-- __pycache__
@@ -593,9 +633,11 @@
 |   |   |-- playlist_summary.cpython-311.pyc
 |   |   |-- prompt_engineer.cpython-311.pyc
 |   |   |-- RAG_semantic_refiner.cpython-311.pyc
+|   |   |-- song_utils.cpython-311.pyc
 |   |   |-- track_downloader.cpython-311.pyc
 |   |   |-- user_prompt_utils.cpython-311.pyc
 |-- structure.txt
+|-- Technical_Documentation.md
 |-- tests
 |   |-- conftest.py
 |   |-- test_fitbeat.py
