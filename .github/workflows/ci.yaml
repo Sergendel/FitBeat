@@ -11,6 +11,7 @@ on:
       - main
       - master
       - '*'
+  workflow_dispatch:  # Explicitly allows manual trigger from GitHub UI
 
 jobs:
   run-tests:
@@ -32,6 +33,29 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Explicitly Verify OPENAI_API_KEY Availability
+      run: |
+        if [ -z "$OPENAI_API_KEY" ]; then
+          echo "Explicit Error: OPENAI_API_KEY is EMPTY!"
+          exit 1
+        else
+          echo "OPENAI_API_KEY is set explicitly and loaded successfully."
+        fi
+
+    - name: Explicitly Test OpenAI API Connectivity
+      run: |
+        pip install openai
+        python -c "\
+import os, openai\
+openai.api_key=os.getenv('OPENAI_API_KEY')\
+try:\
+    models = openai.Model.list()\
+    print('Explicit API Call Successful:', models)\
+except Exception as e:\
+    print('Explicit OpenAI API call error:', e)\
+    exit(1)\
+"
 
     - name: Run explicit unit tests with pytest
       run: |
