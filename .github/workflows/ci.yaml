@@ -1,65 +1,35 @@
-name: CI - FitBeat Testing
+name: Run Unit and E2E Tests
 
 on:
   push:
-    branches:
-      - main
-      - master
-      - '*'
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - master
-      - '*'
-  workflow_dispatch:  # Allows manual triggering explicitly
+    branches: [main]
 
 jobs:
-  run-tests:
+  tests:
     runs-on: ubuntu-latest
-
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    strategy:
+      matrix:
+        python-version: ["3.11"]
 
     steps:
-      - name: Checkout code explicitly
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11 explicitly
+      - uses: actions/checkout@v4
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies explicitly
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest
 
-      - name: Verify OPENAI_API_KEY explicitly
+      - name: Run Unit tests
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "Explicit Error: OPENAI_API_KEY is EMPTY!"
-            exit 1
-          else
-            echo "OPENAI_API_KEY is set explicitly and loaded successfully."
-          fi
+          pytest tests/unit/
 
-      - name: Explicitly Test OpenAI API Connectivity
+      - name: Run E2E tests
         run: |
-          pip install openai
-          python - <<EOF
-          import os
-          from openai import OpenAI
-
-          client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-
-          try:
-              models = client.models.list()
-              print('Explicit API Call Successful:', models)
-          except Exception as e:
-              print('Explicit OpenAI API call error:', e)
-              exit(1)
-          EOF
-
-      - name: Run explicit unit tests with pytest
-        run: |
-          pytest tests/
+          pytest tests/e2e/
