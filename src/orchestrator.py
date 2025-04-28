@@ -11,7 +11,7 @@ from src.playlist_summary import summarize_results
 from src.user_prompt_utils import parse_user_prompt_to_dataframe
 import warnings
 from langchain_core._api.deprecation import LangChainDeprecationWarning
-from memory_manager import MemoryManager
+from src.memory_manager import MemoryManager
 
 warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
 
