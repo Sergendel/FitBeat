@@ -6,7 +6,7 @@ from track_downloader import TrackDownloader
 from extract.extract_file import ExtractFile
 from filtering_utils import filter_tracks_by_audio_params
 from user_prompt_utils import prompt_to_audio_params
-from RAG_semantic_refiner import RAGSemanticRefiner
+from rag_semantic_refiner import RAGSemanticRefiner
 from playlist_summary import summarize_results
 from user_prompt_utils import parse_user_prompt_to_dataframe
 import warnings

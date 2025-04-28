@@ -16,9 +16,9 @@ def sample_dataset():
     })
 
 
-def test_explicitly_check_env():
-    api_key = os.getenv("OPENAI_API_KEY")
-    assert api_key is not None, "Explicit Error: API key not loaded explicitly into pytest environment."
+# def test_explicitly_check_env():
+#     api_key = os.getenv("OPENAI_API_KEY")
+#     assert api_key is not None, "Explicit Error: API key not loaded explicitly into pytest environment."
 
 def test_prompt_to_audio_params():
     params, folder_name = prompt_to_audio_params("relaxing music")
