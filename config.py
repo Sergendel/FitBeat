@@ -19,3 +19,7 @@ EMBEDDINGS_DB_PATH = PROJECT_ROOT / "corpus" / "embeddings" / "genius_corpus_db"
 
 # memory file
 MEMORY_FILE_PATH =  PROJECT_ROOT / "src"  / "conversation_memory.json"
+
+
+# verbose
+VERBOSE = True

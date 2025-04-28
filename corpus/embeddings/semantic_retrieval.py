@@ -65,7 +65,7 @@ def embed_user_prompt(user_prompt):
     return model.encode(user_prompt).tolist()
 
 
-def get_or_create_song_embedding(artist: str, track_name: str, collection, verbose=False) -> object:
+def get_or_create_song_embedding(artist: str, track_name: str, collection) -> object:
     """
         Get the embedding and context for a given song from the local ChromaDB corpus.
         If the song isn't available locally, dynamically fetch context from Genius API, generate the embedding,
@@ -78,7 +78,7 @@ def get_or_create_song_embedding(artist: str, track_name: str, collection, verbo
         Returns:
             str or None: The context of the song if found or fetched, else e None.
         """
-
+    verbose = config.VERBOSE
     song_id = f"{artist} - {track_name}.txt"
     existing = collection.get(ids=[song_id])
 

@@ -1,3 +1,4 @@
+import config
 from corpus.embeddings.semantic_retrieval import get_or_create_song_embedding, set_collection
 from src.llm_executor import LLMExecutor
 from src.output_parser import OutputParser
@@ -17,10 +18,11 @@ class RAGSemanticRefiner:
 
         self.embed_user_prompt = embed_user_prompt
 
-    def retrieve_semantic_context(self, tracks, verbose=False):
+    def retrieve_semantic_context(self, tracks):
         """
         Retrieves semantic context for each track.
         """
+        verbose = config.VERBOSE
         semantic_contexts = []
         for idx, track in tracks.iterrows():
             artist = track['artists'].split(';')[0].strip()
@@ -47,29 +49,47 @@ class RAGSemanticRefiner:
 
         return semantic_contexts
 
-    def reorder_tracks_by_semantic_ranking(self, original_tracks, ranked_playlist, verbose=False):
-        """
-        Reorders tracks based on semantic ranking.
-        """
+    def reorder_tracks_by_semantic_ranking(self, original_tracks, ranked_playlist):
+
+        verbose = config.VERBOSE
+
         ranked_df = pd.DataFrame(ranked_playlist)
+
+        # Normalize strings to ensure accurate matching
         ranked_df['track_name'] = ranked_df['track_name'].str.lower().str.strip()
         ranked_df['artist'] = ranked_df['artist'].str.lower().str.strip()
 
         original_tracks['normalized_track_name'] = original_tracks['track_name'].str.lower().str.strip()
         original_tracks['normalized_artist'] = original_tracks['artists'].str.lower().str.split(';').str[0].str.strip()
 
-        filtered_df = pd.merge(ranked_df, original_tracks,
-                               left_on=['track_name', 'artist'],
-                               right_on=['normalized_track_name', 'normalized_artist'],
-                               how='inner').drop_duplicates(subset=['track_name', 'artists'])
+        # Reorder by explicitly iterating through ranked_df
+        ordered_rows = []
+        missing_tracks = []
 
-        missing_tracks = set(ranked_df['track_name']) - set(filtered_df['normalized_track_name'])
-        if missing_tracks:
-            if verbose: print(f"Missing tracks after merge: {missing_tracks}")
+        for _, ranked_row in ranked_df.iterrows():
+            mask = (
+                    (original_tracks['normalized_track_name'] == ranked_row['track_name']) &
+                    (original_tracks['normalized_artist'] == ranked_row['artist'])
+            )
+            match = original_tracks[mask]
 
-        return filtered_df
+            if not match.empty:
+                ordered_rows.append(match.iloc[0])
+            else:
+                missing_tracks.append((ranked_row['artist'], ranked_row['track_name']))
 
-    def refine_tracks_with_rag(self, user_prompt, tracks, folder_name, embedding_top_k=None, verbose = False):
+        # Combine ordered rows into final DataFrame
+        ordered_df = pd.DataFrame(ordered_rows).reset_index(drop=True)
+
+        if verbose and missing_tracks:
+            print(f"Missing tracks: {missing_tracks}")
+
+        # Drop temporary normalization columns
+        ordered_df = ordered_df.drop(columns=['normalized_track_name', 'normalized_artist'], errors='ignore')
+
+        return ordered_df
+
+    def refine_tracks_with_rag(self, user_prompt, tracks, folder_name, embedding_top_k=None):
         """
     Refines and ranks a list of tracks  using RAG based on semantic context (lyrics and descriptions).
 
@@ -104,6 +124,8 @@ class RAGSemanticRefiner:
         - Ensures robustness against missing or incomplete LLM responses, proceeding with original data if refinement fails.
 
     """
+        verbose = config.VERBOSE
+
         if verbose: print("\nRetrieving semantic context (lyrics and descriptions) for candidate tracks...\n"
               "Context will be loaded from the local corpus if available; otherwise, it will be retrieved dynamically from the Genius API.")
 
