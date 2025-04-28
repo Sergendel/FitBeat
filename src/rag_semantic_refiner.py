@@ -18,7 +18,7 @@ class RAGSemanticRefiner:
         chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
         num_threads = min(2, multiprocessing.cpu_count())
 
-        collection = chroma_client.get_or_create_collection(
+        self.collection = chroma_client.get_or_create_collection(
             name="genius_embeddings",
             metadata={
                 "hnsw:space": "cosine",  # Adjust if needed

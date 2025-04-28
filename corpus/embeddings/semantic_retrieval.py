@@ -22,6 +22,11 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 # Connect to ChromaDB
 chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
 num_threads = min(2, multiprocessing.cpu_count())
+collection_name = "genius_embeddings"
+try:
+    chroma_client.delete_collection(name=collection_name)
+except Exception:
+    pass  # Ignore if it doesn't exist
 collection = chroma_client.get_or_create_collection(
     name="genius_embeddings",
     metadata={
