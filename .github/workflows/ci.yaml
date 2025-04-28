@@ -29,11 +29,13 @@ jobs:
       - name: Run Unit tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
         run: |
           pytest tests/unit/
 
       - name: Run E2E tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
         run: |
           pytest tests/e2e/
