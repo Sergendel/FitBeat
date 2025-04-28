@@ -6,7 +6,7 @@ import pandas as pd
 from corpus.embeddings.semantic_retrieval import embed_user_prompt
 import chromadb
 import config
-
+import multiprocessing
 
 class RAGSemanticRefiner:
     def __init__(self):
@@ -16,7 +16,15 @@ class RAGSemanticRefiner:
 
         # Initialize ChromaDB
         chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-        self.collection = chroma_client.get_or_create_collection(name="genius_embeddings")
+        num_threads = min(2, multiprocessing.cpu_count())
+
+        collection = chroma_client.get_or_create_collection(
+            name="genius_embeddings",
+            metadata={
+                "hnsw:space": "cosine",  # Adjust if needed
+                "hnsw:num_threads": num_threads  # This correctly sets thread count
+            }
+        )
 
         self.embed_user_prompt = embed_user_prompt
 

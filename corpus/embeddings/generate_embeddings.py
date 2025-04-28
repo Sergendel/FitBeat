@@ -3,6 +3,8 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer
 import chromadb
 import pandas as pd
+import multiprocessing
+
 
 # Adjust sys.path explicitly to import project-specific configurations
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -16,7 +18,17 @@ metadata_df = pd.read_csv(config.CORPUS_METADATA_PATH)
 
 # Initialize ChromaDB client and collection for storing embeddings
 chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-collection = chroma_client.get_or_create_collection(name="genius_embeddings")
+num_threads = min(2, multiprocessing.cpu_count())
+
+collection = chroma_client.get_or_create_collection(
+    name="genius_embeddings",
+    metadata={
+        "hnsw:space": "cosine",             # Adjust if needed
+        "hnsw:num_threads": num_threads     # This correctly sets thread count
+    }
+)
+
+
 
 # Iterate over corpus metadata and generate embeddings for each song context
 for idx, row in metadata_df.iterrows():

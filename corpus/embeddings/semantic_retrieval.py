@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 import pandas as pd
 from src.song_utils import generate_song_context
-
+import multiprocessing
 
 # Load environment
 load_dotenv()
@@ -21,8 +21,14 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Connect to ChromaDB
 chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-collection = chroma_client.get_or_create_collection(name="genius_embeddings")
-
+num_threads = min(2, multiprocessing.cpu_count())
+collection = chroma_client.get_or_create_collection(
+    name="genius_embeddings",
+    metadata={
+        "hnsw:space": "cosine",             # Adjust if needed
+        "hnsw:num_threads": num_threads     # This correctly sets thread count
+    }
+)
 # Initialize Genius API
 genius = lyricsgenius.Genius(os.getenv("GENIUS_API_KEY"), timeout=15, verbose=False)
 
