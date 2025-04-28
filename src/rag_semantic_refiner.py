@@ -22,7 +22,7 @@ class RAGSemanticRefiner:
             name="genius_embeddings",
             metadata={
                 "hnsw:space": "cosine",  # Adjust if needed
-                "hnsw:num_threads": num_threads  # This correctly sets thread count
+                "hnsw:num_threads": 1 #num_threads  # This correctly sets thread count
             }
         )
 
