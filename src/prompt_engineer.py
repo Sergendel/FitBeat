@@ -132,7 +132,7 @@ class PromptEngineer:
                     Each dictionary explicitly includes:
                         {
                             'artist': Artist name,
-                            'title': Track title,
+                            'track_name': Track track_name,
                             'context': Semantic context explicitly (lyrics/descriptions), or None if unavailable.
                         }
 
@@ -145,8 +145,8 @@ class PromptEngineer:
         """
 
         context_text = "\n".join([
-            f"{i + 1}. {track['artist']} - {track['title']}:\n{track['context'][:500]}..." if track[
-                'context'] else f"{i + 1}. {track['artist']} - {track['title']}: No additional context."
+            f"{i + 1}. {track['artist']} - {track['track_name']}:\n{track['context'][:500]}..." if track[
+                'context'] else f"{i + 1}. {track['artist']} - {track['track_name']}: No additional context."
             for i, track in enumerate(refined_tracks_context)
         ])
 
@@ -165,8 +165,8 @@ class PromptEngineer:
 
         {{
             "ranked_playlist": [
-                {{"artist": "Artist1", "title": "Title1"}},
-                {{"artist": "Artist2", "title": "Title2"}},
+                {{"artist": "Artist1", "track_name": "track_name1"}},
+                {{"artist": "Artist2", "track_name": "track_name2"}},
                 ...
             ],
             "summary": "short_summary_for_folder_name"

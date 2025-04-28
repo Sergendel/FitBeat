@@ -56,16 +56,16 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
     metadata_records = []
 
     for i, (idx, track) in enumerate(filtered_df.iterrows()):
-        title = track['track_name'].strip()
+        track_name = track['track_name'].strip()
         artist = track['artists'].split(';')[0].strip()
-        print(f"Processing: {artist} - {title}")
+        print(f"Processing: {artist} - {track_name}")
 
         try:
             # Get song context
-            song_context = generate_song_context(artist, title)
+            song_context = generate_song_context(artist, track_name)
 
             if song_context:
-                filename = f"{artist} - {title}.txt"
+                filename = f"{artist} - {track_name}.txt"
                 file_path = os.path.join(CORPUS_DIR, filename)
 
                 with open(file_path, 'w', encoding='utf-8') as f:
@@ -75,7 +75,7 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
 
                 metadata_records.append({
                     'artist': artist,
-                    'title': title,
+                    'track_name': track_name,
                     'filename': filename,
                     'tempo': track['tempo'],
                     'energy': track['energy'],
@@ -85,10 +85,10 @@ def create_basic_corpus(tempo=None, danceability=None, energy=None, mode=None, v
                     'genre': track['track_genre']
                 })
             else:
-                print(f"Not found on Genius: {artist} - {title}")
+                print(f"Not found on Genius: {artist} - {track_name}")
 
         except Exception as e:
-            print(f"Error processing {artist} - {title}: {e}")
+            print(f"Error processing {artist} - {track_name}: {e}")
 
     metadata_df = pd.DataFrame(metadata_records)
     metadata_df.to_csv(CORPUS_METADATA_PATH, index=False, encoding='utf-8')
@@ -106,5 +106,5 @@ if __name__ == "__main__":
         mode=None,
         valence=0.6,
         track_genre=None,
-        max_songs=500
+        max_songs=200
     )

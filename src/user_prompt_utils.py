@@ -59,10 +59,10 @@ def parse_user_prompt_to_dataframe(user_prompt):
         if line.startswith("-"):
             line_content = line[1:].strip()
             if " - " in line_content:
-                artist, title = line_content.split(" - ", 1)
+                artist, track_name = line_content.split(" - ", 1)
                 tracks.append({
                     'artists': artist.strip(),
-                    'track_name': title.strip(),
+                    'track_name': track_name.strip(),
                     'popularity': None,
                     'tempo': None,
                     'explicit': None,

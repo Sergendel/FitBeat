@@ -3,7 +3,7 @@ import lyricsgenius
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-
+import time
 
 # Load environment variables
 load_dotenv()
@@ -17,23 +17,24 @@ def get_song_description(song_url):
     return description_div.get_text(separator='\n', strip=True) if description_div else "No description found."
 
 
-def generate_song_context(artist, title, verbose = False):
+def generate_song_context(artist, track_name, verbose = False):
     """
-    Generates a comprehensive textual context for a song given artist and title.
+    Generates a comprehensive textual context for a song given artist and track_name.
 
     Parameters:
         artist (str): Name of the song's artist.
-        title (str): Title of the song.
+        track_name (str): track_name of the song.
 
     Returns :
-        str or None: Complete textual context (title, artist, album, description, lyrics) if the song is found;
+        str or None: Complete textual context (track_name, artist, album, description, lyrics) if the song is found;
                      None if the song is not found.
     """
-    song = genius.search_song(title, artist)
+    song = genius.search_song(title = track_name, artist = artist)
     if song:
         description = get_song_description(song.url)
+        #time.sleep(1.5)
         context = (
-            f"Title: {song.title}\n"
+            f"track_name: {song.title}\n"
             f"Artist: {song.artist}\n"
             f"Album: {song.album}\n\n"
             f"Description:\n{description}\n\n"
@@ -41,5 +42,5 @@ def generate_song_context(artist, title, verbose = False):
         )
         return context
     else:
-        if verbose: print(f"Genius did not find '{title}' by '{artist}'.")
+        if verbose: print(f"Genius did not find '{track_name}' by '{artist}'.")
         return None

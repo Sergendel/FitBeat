@@ -9,11 +9,11 @@ load_dotenv()
 genius = lyricsgenius.Genius(os.getenv('GENIUS_API_KEY'))
 
 tracks = [
-    {"title": "Ferrari", "artist": "James Hype"},
-    {"title": "I'm Good (Blue)", "artist": "David Guetta"},
-    {"title": "INDUSTRY BABY", "artist": "Lil Nas X"},
-    {"title": "Unholy", "artist": "Sam Smith"},
-    {"title": "Mr. Brightside", "artist": "The Killers"}
+    {"track_name": "Ferrari", "artist": "James Hype"},
+    {"track_name": "I'm Good (Blue)", "artist": "David Guetta"},
+    {"track_name": "INDUSTRY BABY", "artist": "Lil Nas X"},
+    {"track_name": "Unholy", "artist": "Sam Smith"},
+    {"track_name": "Mr. Brightside", "artist": "The Killers"}
 ]
 
 output_folder = "genius_corpus_simple"
@@ -34,16 +34,16 @@ def get_song_description(song_url):
 
 
 for track in tracks:
-    song = genius.search_song(track["title"], track["artist"])
+    song = genius.search_song(track["track_name"], track["artist"])
     if song:
-        filename = f"{track['artist']} - {track['title']}.txt"
+        filename = f"{track['artist']} - {track['track_name']}.txt"
         file_path = os.path.join(output_folder, filename)
 
         # description
         description = get_song_description(song.url)
 
         with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"Title: {song.title}\n")
+            f.write(f"track_name: {song.track_name}\n")
             f.write(f"Artist: {song.artist}\n")
             f.write(f"Album: {song.album}\n\n")
 
@@ -55,6 +55,6 @@ for track in tracks:
 
         print(f"Song's lyrics and description downloaded: {filename}")
     else:
-        print(f"The song was not found: {track['artist']} - {track['title']}")
+        print(f"The song was not found: {track['artist']} - {track['track_name']}")
 
 print("Done.")

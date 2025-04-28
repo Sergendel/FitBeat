@@ -65,7 +65,7 @@ def filter_tracks_by_audio_params(dataset, params, folder_name, num_tracks=10):
             pd.DataFrame:
                 DataFrame containing tracks that match numeric filtering criteria,
                 including columns such as:
-                    - 'track_name': Title of the track.
+                    - 'track_name': track_name of the track.
                     - 'artists': Artist name(s).
                     - 'popularity', 'tempo', 'explicit', 'danceability', 'energy', etc.
                 If no tracks match criteria, returns an empty DataFrame.

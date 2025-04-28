@@ -168,7 +168,7 @@ if __name__ == "__main__":
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
-    #user_prompt = "music for romantic date"
+    user_prompt = "music for romantic date"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
     # user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     # # first run with
     # user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
     # # next run
-    user_prompt = "I forgot to say that we would probably dance during our date"
+    #user_prompt = "I forgot to say that we would probably dance during our date"
 
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=20)

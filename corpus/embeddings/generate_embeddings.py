@@ -3,8 +3,7 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer
 import chromadb
 import pandas as pd
-import multiprocessing
-
+import os
 
 # Adjust sys.path explicitly to import project-specific configurations
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -17,17 +16,27 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 metadata_df = pd.read_csv(config.CORPUS_METADATA_PATH)
 
 # Initialize ChromaDB client and collection for storing embeddings
-chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-num_threads = min(2, multiprocessing.cpu_count())
+if os.getenv("GITHUB_ACTIONS") == "true":
+    # CI environment: in-memory ephemeral storage
+    chroma_client = chromadb.Client()
+    collection_name = "genius_embeddings_ci"
 
-collection = chroma_client.get_or_create_collection(
-    name="genius_embeddings",
-    metadata={
-        "hnsw:space": "cosine",             # Adjust if needed
-        "hnsw:num_threads": 1 #num_threads    # This correctly sets thread count
-    }
-)
+    collection = chroma_client.get_or_create_collection(
+        name=collection_name,
+        metadata={
+            "hnsw:space": "cosine",
+            "hnsw:num_threads": 1
+        }
+    )
+else:
+    # Production environment: persistent storage
+    chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+    collection_name = "genius_embeddings"
 
+    collection = chroma_client.get_or_create_collection(
+        name=collection_name,
+        metadata={"hnsw:space": "cosine"}
+    )
 
 
 # Iterate over corpus metadata and generate embeddings for each song context
@@ -49,7 +58,7 @@ for idx, row in metadata_df.iterrows():
             documents=[song_context],
             metadatas=[{
                 "artists": row["artist"],        # Explicitly corrected and consistent
-                "track_name": row["title"],      # Explicitly corrected and consistent
+                "track_name": row["track_name"],      # Explicitly corrected and consistent
                 "genre": row["genre"]
             }]
         )

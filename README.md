@@ -123,7 +123,14 @@ pytest tests/
 
 ### 📌 Continuous Integration (CI)
 
-FitBeat utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. This ensures continuous code quality and early detection of issues.
+FitBeat utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. 
+To ensure robust, fast, and isolated tests, the following practices are used:
+
+- **In-Memory Databases for Testing:**  
+  CI tests (`GITHUB_ACTIONS=true`) use ChromaDB’s in-memory storage to maximize test isolation and speed.
+
+- **Production Environment:**  
+  Persistent storage is used, clearly separated from testing configurations.
 
 - View CI workflowsunder your repository's **Actions** tab.
 

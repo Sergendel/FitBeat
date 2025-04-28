@@ -1,12 +1,10 @@
-from corpus.embeddings.semantic_retrieval import get_or_create_song_embedding
+from corpus.embeddings.semantic_retrieval import get_or_create_song_embedding, set_collection
 from src.llm_executor import LLMExecutor
 from src.output_parser import OutputParser
 from src.prompt_engineer import PromptEngineer
 import pandas as pd
 from corpus.embeddings.semantic_retrieval import embed_user_prompt
-import chromadb
-import config
-import multiprocessing
+
 
 class RAGSemanticRefiner:
     def __init__(self):
@@ -14,17 +12,8 @@ class RAGSemanticRefiner:
         self.parser = OutputParser()
         self.prompt_engineer = PromptEngineer()
 
-        # Initialize ChromaDB
-        chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-        num_threads = min(2, multiprocessing.cpu_count())
-
-        self.collection = chroma_client.get_or_create_collection(
-            name="genius_embeddings",
-            metadata={
-                "hnsw:space": "cosine",  # Adjust if needed
-                "hnsw:num_threads": 1 #num_threads  # This correctly sets thread count
-            }
-        )
+        # Set ChromaDB collection
+        self.collection = set_collection(collection_name = "genius_embeddings")
 
         self.embed_user_prompt = embed_user_prompt
 
@@ -35,24 +24,24 @@ class RAGSemanticRefiner:
         semantic_contexts = []
         for idx, track in tracks.iterrows():
             artist = track['artists'].split(';')[0].strip()
-            title = track['track_name']
+            track_name = track['track_name']
 
-            if verbose: print(f"\nRetrieving semantic context for: {artist} - {title}")
+            if verbose: print(f"\nRetrieving semantic context for: {artist} - {track_name}")
 
-            song_text = get_or_create_song_embedding(artist, title)
+            song_text = get_or_create_song_embedding(artist, track_name, self.collection)
 
             if song_text:
-                #print(f"Semantic context retrieved for '{title}'.")
+                #print(f"Semantic context retrieved for '{track_name}'.")
                 semantic_contexts.append({
                     'artist': artist,
-                    'title': title,
+                    'track_name': track_name,
                     'context': song_text
                 })
             else:
-                if verbose: print(f"No semantic context found for '{title}'. Proceeding without semantic context.")
+                if verbose: print(f"No semantic context found for '{track_name}'. Proceeding without semantic context.")
                 semantic_contexts.append({
                     'artist': artist,
-                    'title': title,
+                    'track_name': track_name,
                     'context': None
                 })
 
@@ -63,18 +52,18 @@ class RAGSemanticRefiner:
         Reorders tracks based on semantic ranking.
         """
         ranked_df = pd.DataFrame(ranked_playlist)
-        ranked_df['title'] = ranked_df['title'].str.lower().str.strip()
+        ranked_df['track_name'] = ranked_df['track_name'].str.lower().str.strip()
         ranked_df['artist'] = ranked_df['artist'].str.lower().str.strip()
 
-        original_tracks['normalized_title'] = original_tracks['track_name'].str.lower().str.strip()
+        original_tracks['normalized_track_name'] = original_tracks['track_name'].str.lower().str.strip()
         original_tracks['normalized_artist'] = original_tracks['artists'].str.lower().str.split(';').str[0].str.strip()
 
         filtered_df = pd.merge(ranked_df, original_tracks,
-                               left_on=['title', 'artist'],
-                               right_on=['normalized_title', 'normalized_artist'],
+                               left_on=['track_name', 'artist'],
+                               right_on=['normalized_track_name', 'normalized_artist'],
                                how='inner').drop_duplicates(subset=['track_name', 'artists'])
 
-        missing_tracks = set(ranked_df['title']) - set(filtered_df['normalized_title'])
+        missing_tracks = set(ranked_df['track_name']) - set(filtered_df['normalized_track_name'])
         if missing_tracks:
             if verbose: print(f"Missing tracks after merge: {missing_tracks}")
 
@@ -144,16 +133,16 @@ class RAGSemanticRefiner:
     def rank_tracks_by_embedding_similarity(self, user_prompt, tracks, top_k=50, verbose = False):
 
         # Step 1 Ensure embeddings exist
-        for artist, title in zip(tracks['artists'], tracks['track_name']):
-            get_or_create_song_embedding(artist, title)
+        for artist, track_name in zip(tracks['artists'], tracks['track_name']):
+            get_or_create_song_embedding(artist, track_name, self.collection)
 
         # Step 2 Embed user prompt explicitly
         user_embedding = self.embed_user_prompt(user_prompt)
 
         # Step 3  Construct ChromaDB metadata filter
         track_metadata_conditions = [
-            {"$and": [{"artists": {"$eq": artist}}, {"track_name": {"$eq": title}}]}
-            for artist, title in zip(tracks['artists'], tracks['track_name'])
+            {"$and": [{"artists": {"$eq": artist}}, {"track_name": {"$eq": track_name}}]}
+            for artist, track_name in zip(tracks['artists'], tracks['track_name'])
         ]
 
         # Step 4 explicitly: Perform ChromaDB semantic embedding search
