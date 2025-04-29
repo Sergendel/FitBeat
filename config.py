@@ -22,4 +22,4 @@ MEMORY_FILE_PATH =  PROJECT_ROOT / "src"  / "conversation_memory.json"
 
 
 # verbose
-VERBOSE = True
+VERBOSE = False

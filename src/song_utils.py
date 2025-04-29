@@ -45,18 +45,19 @@ def generate_song_context(artist, track_name):
         description ="Make love not war"
     else:
         song = genius.search_song(title = track_name, artist = artist)
-        description = get_song_description(song.url)
 
-    if song:
-        #time.sleep(1.5)
-        context = (
-            f"track_name: {song.title}\n"
-            f"Artist: {song.artist}\n"
-            f"Album: {song.album}\n\n"
-            f"Description:\n{description}\n\n"
-            f"Lyrics:\n{song.lyrics}"
-        )
-        return context
-    else:
-        if verbose: print(f"Genius did not find '{track_name}' by '{artist}'.")
-        return None
+        if song:
+            description = get_song_description(song.url)
+        else:
+            if verbose:
+                print(f"Genius did not find '{track_name}' by '{artist}'.")
+                return None
+    context = (
+        f"track_name: {song.title}\n"
+        f"Artist: {song.artist}\n"
+        f"Album: {song.album}\n\n"
+        f"Description:\n{description}\n\n"
+        f"Lyrics:\n{song.lyrics}"
+    )
+    return context
+
