@@ -4,6 +4,7 @@ import re
 from yt_dlp import YoutubeDL
 from pathlib import Path
 import config
+from unittest.mock import patch
 
 class TrackDownloader:
     def __init__(self):
@@ -16,6 +17,7 @@ class TrackDownloader:
             return f"{track_index:02d} - {safe_name}"
         return safe_name
 
+    # TODO: replace by unittest.mock
     def download_and_convert(self, track_name, artist_name, subfolder, track_index=None):
         filename_safe = self._safe_filename(track_name, artist_name, track_index)
         save_folder = Path(subfolder)
@@ -61,7 +63,6 @@ class TrackDownloader:
 
         print(f"Downloaded and converted: {output_mp3.name}")
 
-
     def retrieve_and_convert(self, tracks, folder_name):
            """
                Retrieves audio tracks from YouTube and converts them to MP3 format.
@@ -86,8 +87,6 @@ class TrackDownloader:
                    folder_path,
                    track_index=track_number
                )
-
-
 
 #  Example Usage:
 if __name__ == "__main__":
