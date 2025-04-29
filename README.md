@@ -198,27 +198,70 @@ These scenarios clearly show FitBeat's flexible, context-aware decision-making a
 ## 📂 **Project Structure**
 
 ```
-FitBeat/
-├── audio/                     # MP3 playlists generated here
-├── bin/                       # External binaries (ffmpeg)
-├── corpus/                    # Lyrics and descriptions corpus
-├── data/                      # Datasets (Kaggle)
-├── EDA/                       # Exploratory data analysis scripts
-├── extract/                   # Data extraction utilities
-├── src/                       # Core project scripts
-│   ├── orchestrator.py        # Main orchestration logic
-│   ├── memory_manager.py      # Persistent memory management
-│   ├── prompt_engineer.py     # Prompt construction logic
-│   ├── llm_executor.py        # LLM interaction handling
-│   ├── filtering_utils.py     # Numeric track filtering utilities
-│   ├── RAG_semantic_refiner.py# Semantic ranking via RAG
-│   ├── track_downloader.py    # YouTube track retrieval/conversion
-│   └── playlist_summary.py    # Playlist summarization
-├── .env                       # Environment variables (OpenAI API, Genius API keys)
-└── README.md                  # Project documentation
-```
+# 📂 FitBeat Project Structure
 
----
+```
+FitBeat/
+├── .env.example
+├── .gitignore
+├── config.py
+├── README.md
+├── .github/
+├── bin/
+│   ├── ffmpeg.exe
+│   ├── ffplay.exe
+│   └── ffprobe.exe
+├── corpus/
+│   ├── corpus_metadata.csv
+│   ├── create_basic_corpus.py
+│   ├── genius_corpus_simple.py
+│   ├── __init__.py
+│   └── embeddings/
+│       ├── generate_embeddings.py
+│       ├── semantic_retrieval.py
+│       ├── __init__.py
+│       └── genius_corpus_db/
+│           ├── chroma.sqlite3
+│           └── eb90c47c-e55c-4bf5-84b4-517c051c9c83/
+│               ├── data_level0.bin
+│               ├── header.bin
+│               ├── length.bin
+│               └── link_lists.bin
+├── data/
+│   └── kaggle/
+│       ├── check_genres.py
+│       ├── dataset.csv
+│       └── download_Kaggle_data.py
+├── eda/
+│   └── kaggle_eda.py
+├── extract/
+│   ├── extract_base.py
+│   ├── extract_file.py
+│   └── __init__.py
+├── src/
+│   ├── dataset_genres.py
+│   ├── filtering_utils.py
+│   ├── llm_executor.py
+│   ├── memory_manager.py
+│   ├── orchestrator.py
+│   ├── output_parser.py
+│   ├── playlist_summary.py
+│   ├── prompt_engineer.py
+│   ├── rag_semantic_refiner.py
+│   ├── song_utils.py
+│   ├── track_downloader.py
+│   ├── user_prompt_utils.py
+│   └── __init__.py
+└── tests/
+    ├── conftest.py
+    ├── __init__.py
+    ├── e2e/
+    │   ├── test_e2e_orchestrator.py
+    │   └── __init__.py
+    └── unit/
+        ├── test_fitbeat.py
+        └── __init__.py
+```
 
 ## 🚀 **How to Run**
 

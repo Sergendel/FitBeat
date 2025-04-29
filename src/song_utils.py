@@ -51,7 +51,7 @@ def generate_song_context(artist, track_name):
         else:
             if verbose:
                 print(f"Genius did not find '{track_name}' by '{artist}'.")
-                return None
+            return None
     context = (
         f"track_name: {song.title}\n"
         f"Artist: {song.artist}\n"
