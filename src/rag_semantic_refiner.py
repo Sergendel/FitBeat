@@ -14,7 +14,7 @@ class RAGSemanticRefiner:
         self.prompt_engineer = PromptEngineer()
 
         # Set ChromaDB collection
-        self.collection = set_collection(collection_name = "genius_embeddings")
+        self.collection = set_collection()
 
         self.embed_user_prompt = embed_user_prompt
 

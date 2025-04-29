@@ -19,16 +19,29 @@ import config
 # Initialize embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def set_collection(collection_name = "genius_embeddings"):
+def set_collection():
 
-    # Set ChromaDB collection
-    chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
-
-    try:
-        collection = chroma_client.get_collection(name=collection_name)
-    except NotFoundError:
-        raise RuntimeError(f"Collection '{collection_name}' does not exist. "
-                           f"Ensure it is created during initialization.")
+    # set collection
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        # CI environment: in-memory ephemeral storage
+        chroma_client = chromadb.Client()
+        collection_name = "genius_embeddings_ci"
+        collection = chroma_client.get_or_create_collection(
+            name=collection_name,
+            metadata={
+                "hnsw:space": "cosine",
+                "hnsw:num_threads": 1
+            }
+        )
+    else:
+        # Set ChromaDB collection
+        collection_name = "genius_embeddings"
+        chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+        try:
+            collection = chroma_client.get_collection(name=collection_name)
+        except NotFoundError:
+            raise RuntimeError(f"Collection '{collection_name}' does not exist. "
+                               f"Ensure it is created during initialization.")
     return collection
 
 # find similar tracks (semantic) to user provided track (name and artist)
