@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
-import lyricsgenius
 import os
 from dotenv import load_dotenv
 from src.song_utils import generate_song_context

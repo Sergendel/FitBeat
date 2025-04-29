@@ -3,7 +3,9 @@ import lyricsgenius
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-import time
+from types import SimpleNamespace
+
+import config
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +19,7 @@ def get_song_description(song_url):
     return description_div.get_text(separator='\n', strip=True) if description_div else "No description found."
 
 
-def generate_song_context(artist, track_name, verbose = False):
+def generate_song_context(artist, track_name):
     """
     Generates a comprehensive textual context for a song given artist and track_name.
 
@@ -29,9 +31,23 @@ def generate_song_context(artist, track_name, verbose = False):
         str or None: Complete textual context (track_name, artist, album, description, lyrics) if the song is found;
                      None if the song is not found.
     """
-    song = genius.search_song(title = track_name, artist = artist)
-    if song:
+    verbose = config.VERBOSE
+
+
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        song = SimpleNamespace(
+            title="Dummy Title",
+            artist="Dummy Artist",
+            album="Dummy Album",
+            url="https://dummy.url",
+            lyrics="Love is in the air"
+        )
+        description ="Make love not war"
+    else:
+        song = genius.search_song(title = track_name, artist = artist)
         description = get_song_description(song.url)
+
+    if song:
         #time.sleep(1.5)
         context = (
             f"track_name: {song.title}\n"
