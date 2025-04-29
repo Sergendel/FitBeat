@@ -6,6 +6,7 @@ import config
 from langchain.schema.messages import HumanMessage
 import warnings
 from langchain_core._api.deprecation import LangChainDeprecationWarning
+import os
 
 warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
 load_dotenv()
@@ -78,5 +79,10 @@ class MemoryManager:
         Prompts user to confirm if they start a new unrelated task.
         Returns True if memory should be cleared.
         """
-        response = input("\n*****   Do you want to clear previous memory and start a new unrelated task? (y/n): ").strip().lower()
-        return response in ("y", "yes")
+        if os.getenv("GITHUB_ACTIONS") == "true":
+            print("GitHub Actions detected. Automatically confirming clear memory (y).")
+            return True  # explicitly confirm "yes" in GitHub Actions
+        else:
+            response = input(
+                "\n***** Do you want to clear previous memory and start a new unrelated task? (y/n): ").strip().lower()
+            return response in ("y", "yes")
