@@ -1,8 +1,8 @@
-from extract.extract_base import ExtractBase
 from pandas import read_csv, to_numeric
+
 import config
-from pathlib import Path
-import config
+from extract.extract_base import ExtractBase
+
 
 class ExtractFile(ExtractBase):
 
@@ -13,9 +13,10 @@ class ExtractFile(ExtractBase):
     def load_data(self):
         # Load dataset and ensure 'tempo' is numeric
         df = read_csv(self.file_path)
-        df['tempo'] = to_numeric(df['tempo'], errors='coerce')
-        df.dropna(subset=['tempo'], inplace=True)  # remove invalid entries if any
+        df["tempo"] = to_numeric(df["tempo"], errors="coerce")
+        df.dropna(subset=["tempo"], inplace=True)  # remove invalid entries if any
         return df
+
 
 if __name__ == "__main__":
 
@@ -31,7 +32,7 @@ if __name__ == "__main__":
     print(data.info())
 
     # Check BPM distribution quickly
-    print(data['tempo'].describe())
+    print(data["tempo"].describe())
 
     # Check genres quickly (optional)
-    print(data['track_genre'].value_counts().head(10))
+    print(data["track_genre"].value_counts().head(10))

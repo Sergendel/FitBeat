@@ -1,21 +1,23 @@
+import warnings
+
 from dotenv import load_dotenv
-from src.prompt_engineer import PromptEngineer
-from src.llm_executor import LLMExecutor
-from src.output_parser import OutputParser
-from src.track_downloader import TrackDownloader
+from langchain_core._api.deprecation import LangChainDeprecationWarning
+
 from extract.extract_file import ExtractFile
 from src.filtering_utils import filter_tracks_by_audio_params
-from src.user_prompt_utils import prompt_to_audio_params
-from src.rag_semantic_refiner import RAGSemanticRefiner
-from src.playlist_summary import summarize_results
-from src.user_prompt_utils import parse_user_prompt_to_dataframe
-import warnings
-from langchain_core._api.deprecation import LangChainDeprecationWarning
+from src.llm_executor import LLMExecutor
 from src.memory_manager import MemoryManager
+from src.output_parser import OutputParser
+from src.playlist_summary import summarize_results
+from src.prompt_engineer import PromptEngineer
+from src.rag_semantic_refiner import RAGSemanticRefiner
+from src.track_downloader import TrackDownloader
+from src.user_prompt_utils import parse_user_prompt_to_dataframe, prompt_to_audio_params
 
 warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
 
 load_dotenv()
+
 
 class Orchestrator:
     def __init__(self):
@@ -38,15 +40,18 @@ class Orchestrator:
         self.action_mapping = {
             "Analyze": self.prompt_to_audio_params,
             "Filter": self.filter_tracks_by_audio_params,
-            "Refine": self.semantic_refiner.hybrid_refine_tracks, # self.semantic_refiner.refine_tracks_with_rag,
+            "Refine": self.semantic_refiner.hybrid_refine_tracks,
             "Retrieve_and_Convert": self.downloader.retrieve_and_convert,
-            "Summarize": self.summarize_results
+            "Summarize": self.summarize_results,
         }
 
     def run_planning_agent(self, user_prompt, num_tracks=20):
 
-        print('\n\n' + '#' * 100)
-        print("### Step 1: Loading existing memory (if available) and constructing the combined prompt:")
+        print("\n\n" + "#" * 100)
+        print(
+            "### Step 1: Loading existing memory (if available) "
+            "and constructing the combined prompt:"
+        )
         # Initialize memory
         self.memory_manager.initialize_memory()
 
@@ -54,68 +59,89 @@ class Orchestrator:
         prompt_with_memory = self.memory_manager.create_prompt_with_memory(user_prompt)
 
         # Planning
-        print('\n\n' + '#' * 100)
-        print(f'### Step 2: LLM is analyzing user request and generating the textual plan of actions...:')
-        planning_prompt = self.prompt_engineer.construct_planning_prompt(prompt_with_memory)
+        print("\n\n" + "#" * 100)
+        print(
+            "### Step 2: LLM is analyzing user request and generating the "
+            "textual plan of actions...:"
+        )
+        planning_prompt = self.prompt_engineer.construct_planning_prompt(
+            prompt_with_memory
+        )
         messages_plan = planning_prompt.format_messages(user_prompt=prompt_with_memory)
         textual_action_plan = self.llm_executor.execute(messages_plan)
 
         if textual_action_plan is None:
-            raise ValueError("LLM returned None or invalid response during planning step.")
+            raise ValueError(
+                "LLM returned None or invalid response during planning step."
+            )
 
         print("\nTextual Plan of Actions:\n", textual_action_plan)
 
-        print('\n\n' + '#' * 100)
-        print("### Step 3: LLM is converting textual plan of actions to the structured one...")
-        structuring_prompt = self.prompt_engineer.construct_action_structuring_prompt(textual_action_plan)
-        messages_structured = structuring_prompt.format_messages(explicit_plan=textual_action_plan)
+        print("\n\n" + "#" * 100)
+        print(
+            "### Step 3: LLM is converting textual plan of actions "
+            "to the structured one..."
+        )
+        structuring_prompt = self.prompt_engineer.construct_action_structuring_prompt(
+            textual_action_plan
+        )
+        messages_structured = structuring_prompt.format_messages(
+            explicit_plan=textual_action_plan
+        )
         structured_actions_json = self.llm_executor.execute(messages_structured)
 
         if structured_actions_json is None or "actions" not in structured_actions_json:
-            raise ValueError("LLM returned None or invalid response during structuring actions step.")
+            raise ValueError(
+                "LLM returned None or invalid response during structuring "
+                "actions step."
+            )
 
         actions_list = structured_actions_json["actions"]
         print("\nStructured Plan of Actions:\n", structured_actions_json)
 
-        print('\n\n' + '#' * 100)
+        print("\n\n" + "#" * 100)
         print("### Step 4: Executing actions...")
         self.execute_actions(actions_list, prompt_with_memory, num_tracks)
-
 
         # update memory
         self.memory_manager.update_memory(user_prompt)
 
     def execute_actions(self, actions_list, user_prompt, num_tracks=20):
         """
-            Executes a structured list of actions generated by the LLM-based planning workflow.
+        Executes a structured list of actions generated by the
+        LLM-based planning workflow.
 
-            This method orchestrates the end-to-end execution of structured actions derived from a user's request.
+        This method orchestrates the end-to-end execution of structured actions
+         derived from a user's request.
 
-            Supported Actions :
-                - "Analyze": Converts user's prompt into numeric audio parameters.
-                - "Filter": Filters tracks based on numeric audio parameters.
-                - "Refine": Performs semantic refinement using lyrics and semantic context (RAG).
-                - "Retrieve_and_Convert": Downloads tracks from YouTube and converts them to MP3.
-                - "Summarize": Summarizes and displays the final playlist results.
+        Supported Actions :
+            - "Analyze": Converts user's prompt into numeric audio parameters.
+            - "Filter": Filters tracks based on numeric audio parameters.
+            - "Refine": Performs semantic refinement using lyrics and
+                        semantic context (RAG).
+            - "Retrieve_and_Convert": Downloads tracks from YouTube and
+                                      converts them to MP3.
+            - "Summarize": Summarizes and displays the
+                           final playlist results.
 
-            Parameters:
-                actions_list (list of str):
-                    A structured,ordered list of actions to perform.
+        Parameters:
+            actions_list (list of str):
+                A structured,ordered list of actions to perform.
 
-                user_prompt (str):
-                    The user's original prompt.
+            user_prompt (str):
+                The user's original prompt.
 
-                num_tracks (int, optional, default=10):
-                    Maximum number of tracks.
+            num_tracks (int, optional, default=10):
+                Maximum number of tracks.
 
-            Returns:
-                None:
+        Returns:
+            None:
         """
 
         params = folder_name = tracks = None
 
         for i_a, action in enumerate(actions_list):
-            print('\n' + '-' * 50)
+            print("\n" + "-" * 50)
             print(f"Action # {i_a + 1}. {action}")
 
             action_method = self.action_mapping.get(action)
@@ -157,10 +183,6 @@ class Orchestrator:
         print("\nAll actions executed successfully!")
 
 
-
-
-
-
 # Example Usage
 if __name__ == "__main__":
     orchestrator = Orchestrator()
@@ -168,11 +190,12 @@ if __name__ == "__main__":
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
-    #user_prompt = "music for romantic date"
+    # user_prompt = "music for romantic date"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
-    user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
-
+    user_prompt = (
+        "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    )
 
     # Scenario 3:
     # user_prompt = (
@@ -181,19 +204,17 @@ if __name__ == "__main__":
     #     "- Eminem - Lose Yourself\n"
     #     "- Coldplay - Adventure of a Lifetime\n\n"
     #     "Just download these exact songs from YouTube, convert them to mp3, "
-    #     "and summarize the resulting playlist. No additional analysis or recommendations are needed."
+    #     "and summarize the resulting playlist. No additional analysis or "
+    #     "recommendations are needed."
     # )
 
     # ----------------------   MEMORY SCENARIOS   ------------------------------
 
     # # Scenario 4: memory
     # # first run with
-    # user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    # user_prompt = "playlist for romantic date, tracks with deeply meaningful "
+    # "and romantic lyrics"
     # # next run
-    #user_prompt = "I forgot to say that we would probably dance during our date"
-
+    # user_prompt = "I forgot to say that we would probably dance during our date"
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=20)
-
-
-

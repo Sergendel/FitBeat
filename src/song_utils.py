@@ -1,22 +1,29 @@
 import os
+from types import SimpleNamespace
+
 import lyricsgenius
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from types import SimpleNamespace
 
 import config
 
 # Load environment variables
 load_dotenv()
-genius = lyricsgenius.Genius(os.getenv('GENIUS_API_KEY'), timeout=15, verbose=False)
+genius = lyricsgenius.Genius(os.getenv("GENIUS_API_KEY"), timeout=15, verbose=False)
 
 
 def get_song_description(song_url):
     response = requests.get(song_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    description_div = soup.find('div', class_=lambda x: x and x.startswith('RichText__Container'))
-    return description_div.get_text(separator='\n', strip=True) if description_div else "No description found."
+    soup = BeautifulSoup(response.text, "html.parser")
+    description_div = soup.find(
+        "div", class_=lambda x: x and x.startswith("RichText__Container")
+    )
+    return (
+        description_div.get_text(separator="\n", strip=True)
+        if description_div
+        else "No description found."
+    )
 
 
 def generate_song_context(artist, track_name):
@@ -28,11 +35,11 @@ def generate_song_context(artist, track_name):
         track_name (str): track_name of the song.
 
     Returns :
-        str or None: Complete textual context (track_name, artist, album, description, lyrics) if the song is found;
+        str or None: Complete textual context (track_name, artist, album,
+                     description, lyrics) if the song is found;
                      None if the song is not found.
     """
     verbose = config.VERBOSE
-
 
     if os.getenv("GITHUB_ACTIONS") == "true":
         song = SimpleNamespace(
@@ -40,11 +47,11 @@ def generate_song_context(artist, track_name):
             artist="Dummy Artist",
             album="Dummy Album",
             url="https://dummy.url",
-            lyrics="Love is in the air"
+            lyrics="Love is in the air",
         )
-        description ="Make love not war"
+        description = "Make love not war"
     else:
-        song = genius.search_song(title = track_name, artist = artist)
+        song = genius.search_song(title=track_name, artist=artist)
 
         if song:
             description = get_song_description(song.url)
@@ -60,4 +67,3 @@ def generate_song_context(artist, track_name):
         f"Lyrics:\n{song.lyrics}"
     )
     return context
-

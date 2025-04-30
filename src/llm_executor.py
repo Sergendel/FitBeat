@@ -1,12 +1,14 @@
-import os
 import json
-from openai import OpenAI
+import os
+
 from dotenv import load_dotenv
+from langchain.chains import ConversationChain
 
 # for memory
 from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationChain
 from langchain_openai import ChatOpenAI
+from openai import OpenAI
+
 
 class LLMExecutor:
     def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
@@ -24,14 +26,15 @@ class LLMExecutor:
             openai_messages = [
                 {
                     "role": "user" if msg.type == "human" else msg.type,
-                    "content": msg.content
-                } for msg in messages
+                    "content": msg.content,
+                }
+                for msg in messages
             ]
 
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=openai_messages,
-                temperature=self.temperature
+                temperature=self.temperature,
             )
 
             content = response.choices[0].message.content.strip()
@@ -57,7 +60,9 @@ class LLMExecutor_with_memory:
         if api_key is None:
             raise ValueError("OPENAI_API_KEY not set in .env file")
 
-        self.llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=temperature)
+        self.llm = ChatOpenAI(
+            api_key=api_key, model_name=model_name, temperature=temperature
+        )
         self.memory = ConversationBufferMemory()
 
         # Integrate memory with ConversationChain
@@ -76,6 +81,3 @@ class LLMExecutor_with_memory:
             return json.loads(response)
         except json.JSONDecodeError:
             return response  # return raw text if JSON fails
-
-
-

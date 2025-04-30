@@ -1,5 +1,6 @@
-import re
 import json
+import re
+
 
 class OutputParser:
     def parse_response(self, llm_response):
@@ -19,7 +20,9 @@ class OutputParser:
                 else:
                     params[key] = None  # Fallback for any unexpected format
 
-            folder_name = re.sub(r'[\\/*?:"<>|]', "_", summary.lower().replace(" ", "_"))
+            folder_name = re.sub(
+                r'[\\/*?:"<>|]', "_", summary.lower().replace(" ", "_")
+            )
 
             return params, folder_name
 
@@ -30,7 +33,7 @@ class OutputParser:
     def parse_ranked_playlist(self, llm_response):
         if isinstance(llm_response, str):
             try:
-                json_str = re.search(r'\{.*\}', llm_response, re.DOTALL)
+                json_str = re.search(r"\{.*\}", llm_response, re.DOTALL)
                 if json_str:
                     llm_response = json.loads(json_str.group())
                 else:

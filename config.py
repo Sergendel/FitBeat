@@ -4,12 +4,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 
-#data
-FILE_PATH = PROJECT_ROOT / 'data' / 'kaggle' / 'dataset.csv'
+# data
+FILE_PATH = PROJECT_ROOT / "data" / "kaggle" / "dataset.csv"
 
 # Paths
-FFMPEG_PATH = PROJECT_ROOT / 'bin' / 'ffmpeg.exe'
-TRACKS_DIR = PROJECT_ROOT / 'audio' / 'downloaded_tracks'
+FFMPEG_PATH = PROJECT_ROOT / "bin" / "ffmpeg.exe"
+TRACKS_DIR = PROJECT_ROOT / "audio" / "downloaded_tracks"
 
 # Corpus and Embedding Paths
 CORPUS_DIR = PROJECT_ROOT / "corpus" / "genius_corpus"
@@ -18,7 +18,7 @@ EMBEDDINGS_DIR = PROJECT_ROOT / "corpus" / "embeddings"
 EMBEDDINGS_DB_PATH = PROJECT_ROOT / "corpus" / "embeddings" / "genius_corpus_db"
 
 # memory file
-MEMORY_FILE_PATH =  PROJECT_ROOT / "src"  / "conversation_memory.json"
+MEMORY_FILE_PATH = PROJECT_ROOT / "src" / "conversation_memory.json"
 
 
 # verbose
