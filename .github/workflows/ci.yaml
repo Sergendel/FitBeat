@@ -46,4 +46,4 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: |
-          python -u -m pytest tests/e2e/ -s
+          python -u -m pytest tests/e2e/ --capture=no -s
