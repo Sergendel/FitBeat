@@ -121,18 +121,34 @@ Run tests with the command:
 pytest tests/
 ```
 
-### 📌 Continuous Integration (CI)
+## 📌 Continuous Integration (CI)
 
-FitBeat utilizes **GitHub Actions** to automatically run unit tests upon each push or pull request. 
-To ensure robust, fast, and isolated tests, the following practices are used:
+FitBeat utilizes **GitHub Actions** to ensure code reliability, maintainability, and adherence to best practices.
+Every push or pull request to the `main` branch automatically triggers the following checks and tests:
 
-- **In-Memory Databases for Testing:**  
-  CI tests (`GITHUB_ACTIONS=true`) use ChromaDB’s in-memory storage to maximize test isolation and speed.
+### ✅ Automated Tests
 
-- **Production Environment:**  
-  Persistent storage is used, clearly separated from testing configurations.
+- **Unit Tests**  
+  Fast, isolated tests verifying individual components. These tests run against ChromaDB’s in-memory storage to maximize speed and isolation.
 
-- View CI workflowsunder your repository's **Actions** tab.
+- **End-to-End (E2E) Tests**  
+  Comprehensive integration tests covering the full workflow of the application, ensuring FitBeat works seamlessly from the user's perspective.
+
+### 🧹 Code Quality & Style Checks
+
+- **Flake8 Linting**  
+  Enforces adherence to [PEP8](https://www.python.org/dev/peps/pep-0008/) guidelines and detects common Python anti-patterns. Configurations are defined in `pyproject.toml`.
+
+- **Black & Isort Formatting**  
+  Ensures consistent code style (`black`) and correct import ordering (`isort`), configured via `pyproject.toml`.
+
+### 🛠️ Testing Environments
+
+- **Testing Environment** (`GITHUB_ACTIONS=true`)  
+  Uses in-memory databases and mock services to provide maximum isolation and performance during continuous integration runs.
+
+- **Production Environment**  
+  Clearly separated from testing configurations, using persistent storage and secure settings for real-world deployment.
 
 
 ##  **FitBeat Execution Examples**
