@@ -13,4 +13,10 @@ def test_orchestrator_e2e():
         text=True,
         cwd=Path(__file__).resolve().parent.parent.parent  # ensures running from project root
     )
+    # Print stdout and stderr after subprocess finishes
+    print("=== Subprocess STDOUT ===")
+    print(result.stdout)
+    print("=== Subprocess STDERR ===")
+    print(result.stderr)
+
     assert result.returncode == 0, f"Orchestrator failed: {result.stderr}"
