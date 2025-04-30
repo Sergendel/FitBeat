@@ -35,7 +35,7 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: |
-          python -u -m pytest tests/unit/
+          python -u -m pytest tests/unit/ -s
 
       - name: Run E2E tests
         env:
@@ -46,4 +46,4 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: |
-          python -u -m pytest tests/e2e/
+          python -u -m pytest tests/e2e/ -s
