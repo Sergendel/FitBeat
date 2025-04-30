@@ -322,7 +322,7 @@ GENIUS_API_KEY="your-genius-api-key"
 Execute the orchestrator script with your desired prompt:
 
 ```bash
-python src/orchestrator.py
+python -m src.orchestrator
 ```
 
 The application will ask if you wish to continue using existing memory or clear it:
