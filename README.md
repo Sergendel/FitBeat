@@ -214,52 +214,46 @@ These scenarios clearly show FitBeat's flexible, context-aware decision-making a
 ## 📂 **Project Structure**
 
 ```
-# 📂 FitBeat Project Structure
-
-```
 FitBeat/
-├── .env.example
-├── .gitignore
-├── config.py
-├── README.md
-├── .github/
-├── bin/
+FitBeat/
+├── .github/                     # GitHub actions & workflows configuration
+├── bin/                         # Binaries and executable dependencies (e.g., ffmpeg)
 │   ├── ffmpeg.exe
 │   ├── ffplay.exe
 │   └── ffprobe.exe
-├── corpus/
-│   ├── corpus_metadata.csv
-│   ├── create_basic_corpus.py
-│   ├── genius_corpus_simple.py
-│   ├── __init__.py
-│   └── embeddings/
-│       ├── generate_embeddings.py
-│       ├── semantic_retrieval.py
-│       ├── __init__.py
-│       └── genius_corpus_db/
-│           ├── chroma.sqlite3
-│           └── eb90c47c-e55c-4bf5-84b4-517c051c9c83/
-│               ├── data_level0.bin
-│               ├── header.bin
-│               ├── length.bin
-│               └── link_lists.bin
-├── data/
+├── corpus/                      # Corpus data and embedding utilities
+│   ├── embeddings/
+│   │   ├── genius_corpus_db/    # Embeddings database for semantic retrieval (ChromaDB)
+│   │   │   ├── chroma.sqlite3
+│   │   │   └── eb90c47c-e55c-4bf5-84b4-517c051c9c83/
+│   │   │       ├── data_level0.bin
+│   │   │       ├── header.bin
+│   │   │       ├── length.bin
+│   │   │       └── link_lists.bin
+│   │   ├── generate_embeddings.py
+│   │   ├── semantic_retrieval.py
+│   │   └── __init__.py
+│   ├── corpus_metadata.csv      # Metadata for corpus data
+│   ├── create_basic_corpus.py   # Script for basic corpus generation
+│   ├── genius_corpus_simple.py  # Simple script for corpus creation using Genius API
+│   └── __init__.py
+├── data/                        # Data storage and scripts for dataset handling
 │   └── kaggle/
 │       ├── check_genres.py
 │       ├── dataset.csv
 │       └── download_Kaggle_data.py
-├── eda/
+├── eda/                         # Exploratory Data Analysis scripts
 │   └── kaggle_eda.py
-├── extract/
+├── extract/                     # Data extraction scripts
 │   ├── extract_base.py
 │   ├── extract_file.py
 │   └── __init__.py
-├── src/
+├── src/                         # Core application logic
 │   ├── dataset_genres.py
 │   ├── filtering_utils.py
 │   ├── llm_executor.py
 │   ├── memory_manager.py
-│   ├── orchestrator.py
+│   ├── orchestrator.py          # Main orchestration script to run the application
 │   ├── output_parser.py
 │   ├── playlist_summary.py
 │   ├── prompt_engineer.py
@@ -268,15 +262,20 @@ FitBeat/
 │   ├── track_downloader.py
 │   ├── user_prompt_utils.py
 │   └── __init__.py
-└── tests/
-    ├── conftest.py
-    ├── __init__.py
-    ├── e2e/
-    │   ├── test_e2e_orchestrator.py
-    │   └── __init__.py
-    └── unit/
-        ├── test_fitbeat.py
-        └── __init__.py
+├── tests/                       # Unit and end-to-end tests
+│   ├── e2e/
+│   │   ├── test_e2e_orchestrator.py
+│   │   └── __init__.py
+│   ├── unit/
+│   │   ├── test_fitbeat.py
+│   │   └── __init__.py
+│   ├── conftest.py              # Shared testing fixtures and configurations
+│   └── __init__.py
+├── .env.example                 # Example environment configuration
+├── .gitignore                   # Git ignore rules
+├── config.py                    # Application configuration file
+└── README.md                    # Main project README documentation
+
 ```
 
 ## 🚀 **How to Run**
