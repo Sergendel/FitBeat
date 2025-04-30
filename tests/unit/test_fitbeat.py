@@ -25,10 +25,10 @@ def test_prompt_to_audio_params():
     assert "tempo" in params, "params should include tempo"
 
 
-def test_filter_tracks_by_audio_params(sample_data):
+def test_filter_tracks_by_audio_params(sample_dataset):
     params = {"tempo": [115, 125], "danceability": [0.5, 0.7]}
     filtered_tracks = filter_tracks_by_audio_params(
-        sample_data, params, "test_folder"
+        sample_dataset, params, "test_folder"
     )
 
     assert not filtered_tracks.empty, "should filter at least one track"
