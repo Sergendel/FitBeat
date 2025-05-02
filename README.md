@@ -8,9 +8,8 @@
 
 **FitBeat** — LLM-powered Music Recommendation Agent
 
-FitBeat transforms your emotional or situational descriptions 
-(e.g., "music for intense gym training" or "playlist for a child's birthday party")
-into personalized MP3 playlists.
+FitBeat is an LLM-powered Music Recommendation Agent that transforms emotional or situational descriptions
+(e.g., "music for intense gym training" or "playlist for a child's birthday party") into personalized playlists.
 
 ## 📌 How It Works (Quick Overview)
 
@@ -24,8 +23,6 @@ into personalized MP3 playlists.
 - Retrieves track contexts (lyrics and descriptions) from [Genius](https://genius.com/)
 - Initially ranks candidate tracks based on embedding similarity between the user's prompt embedding and the tracks' context embeddings, then selects the top-k candidates.
 - Performs further semantic refinement (RAG-based) using LLM-based semantic analysis to finalize rankings based on emotional and contextual relevance.
-
-
 
 
 ### 3. Final Recommendation & Output (Conditional)
@@ -183,8 +180,9 @@ These examples demonstrate how FitBeat autonomously creates an action plan and s
 - **Actions:**
   1. Analyze prompt into numeric audio parameters.
   2. Filter tracks numerically.
-  3. Retrieve tracks from YouTube and convert to MP3.
-  4. Summarize playlist.
+  3. Create_Recommendation_Table.
+  4. Retrieve tracks from YouTube and convert to MP3. # ONLY if config.FRONTEND_MODE == FALSE
+  5. Summarize playlist.
 
 ####  **Scenario 2:** `Analyze → Filter → Rank → Retrieve_and_Convert → Summarize`
 
@@ -193,8 +191,9 @@ These examples demonstrate how FitBeat autonomously creates an action plan and s
   1. Analyze prompt into numeric audio parameters.
   2. Filter tracks numerically.
   3. Rank tracks semantically (using lyrics/context via RAG).
-  4. Retrieve tracks from YouTube and convert to MP3.
-  5. Summarize playlist.
+  4. Create_Recommendation_Table
+  5. Retrieve tracks from YouTube and convert to MP3. # ONLY if config.FRONTEND_MODE == FALSE
+  6. Summarize playlist.
 
 #### **Scenario 3:** `Retrieve_and_Convert → Summarize`
 
@@ -209,8 +208,9 @@ These examples demonstrate how FitBeat autonomously creates an action plan and s
   and summarize the resulting playlist. No additional analysis or recommendations are needed.
   ```
 - **Actions:**
-  1. Retrieve provided tracks from YouTube and convert to MP3.
-  2. Summarize playlist.
+  1. Create_Recommendation_Table
+  2. Retrieve provided tracks from YouTube and convert to MP3. # ONLY if config.FRONTEND_MODE == FALSE
+  3. Summarize playlist.
 
 ---
 
