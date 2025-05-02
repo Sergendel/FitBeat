@@ -1,6 +1,7 @@
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 
+import config
 from src.dataset_genres import DATASET_GENRES
 
 
@@ -69,7 +70,7 @@ class PromptEngineer:
         )
         return ChatPromptTemplate.from_messages([system_message, user_message])
 
-    def construct_planning_prompt(self, user_prompt):
+    def construct_planning_prompt_old(self, user_prompt):
         system_message = SystemMessage(
             content="""
         You're a task-planning assistant for FitBeat, an LLM-powered
@@ -82,9 +83,12 @@ class PromptEngineer:
              Filter tracks based on numeric audio parameters using Kaggle dataset.
         3. Refine: Refine the track list semantically using lyrics, song meanings,
                    and semantic context (Retrieval-Augmented Generation, RAG).
-        4. Retrieve_and_Convert:
+        4. Create_Recommendation_Table: Explicitly generate a structured recommendation
+            table clearly including Artist names, Track names, and Official YouTube
+            links clearly and explicitly.
+        5. Retrieve_and_Convert:
                         Retrieve audio tracks from YouTube and convert them to MP3.
-        5. Summarize: Summarize and present the final playlist.
+        6. Summarize: Summarize and present the final playlist.
 
         Your explicit task:
         - Given user's request, outline a clear and executable sequence of actions.
@@ -97,10 +101,78 @@ class PromptEngineer:
         1. Analyze emotional description into numeric parameters.
         2. Filter dataset  based on numeric audio parameters.
         3. Refine using semantic analysis (lyrics, meaning, context).
+        4. Create Recommendation Table
         4. Retrieve_and_Convert tracks from YouTube.
         5. Summarize and present final playlist.
 
         Return as numbered list of actions.
+        """
+        )
+
+        user_message = HumanMessage(content=user_prompt)
+        return ChatPromptTemplate.from_messages([system_message, user_message])
+
+    def construct_planning_prompt(self, user_prompt):
+        """
+        Constructs planning prompt  based on frontend_mode.
+        """
+        actions_available = """
+        1. Analyze: Convert emotional descriptions into numeric audio parameters
+                    (tempo, valence, energy, etc.).
+        2. Filter:
+                Filter tracks based on numeric audio parameters using Kaggle dataset.
+        3. Refine: Refine the track list semantically using lyrics, song meanings,
+                   and semantic context (Retrieval-Augmented Generation, RAG).
+        4. Create_Recommendation_Table:
+                Create structured recommendation table (Artist, Track, YouTube link).
+        5. Summarize: Summarize and present the final playlist.
+        """
+
+        if not config.FRONTEND_MODE:
+            actions_available += (
+                "\n    6. Retrieve_and_Convert:"
+                "Retrieve audio tracks from YouTube and convert them to MP3."
+            )
+
+        system_message = SystemMessage(
+            content=f"""
+        You're a task-planning assistant for FitBeat, an LLM-powered
+        music recommendation agent.
+
+        FitBeat has these defined abilities and resources:
+        {actions_available}
+
+
+        Your explicit task:
+        - Given user's request, outline a clear and executable sequence of actions.
+        - If the user asks or implies about meaning, lyrics, or emotional
+          depth beyond numeric parameters, include the "Refine" step.
+        - Clearly distinguish between numeric filtering ("Filter") and
+           semantic refinement using lyrics and context ("Refine").
+        - Include "Create_Recommendation_Table"  if user requests or implies wanting
+          recommendations formatted as a table or playlist.
+        - Include "Retrieve_and_Convert" only if if config.FRONTEND_MODE is False and
+          requested or implied by the user's prompt.
+        - Always include "Summarize" at the end if playlist was created by
+          Create_Recommendation_Table or Retrieve_and_Convert actions.
+
+
+        Examples:
+
+        config.FRONTEND_MODE=True:
+        1. Analyze into numeric parameters.
+        2. Filter numerically.
+        3. Refine semantically (if required).
+        4. Create_Recommendation_Table.
+
+        config.FRONTEND_MODE=False:
+        1. Analyze into numeric parameters.
+        2. Filter numerically.
+        3. Refine semantically (if required explicitly).
+        4. Create_Recommendation_Table.
+        5. Retrieve_and_Convert (optional).
+
+        Return numbered list of actions.
         """
         )
 
@@ -126,6 +198,7 @@ class PromptEngineer:
         - "Filter": filter tracks based on numeric audio parameters.
         - "Refine": perform semantic refinement using RAG
                     (lyrics, emotions, semantic context).
+        - "Create_Recommendation_Table" - create a table with selected tracks.
         - "Retrieve_and_Convert": retrieve tracks from YouTube and convert
                                   them to MP3 format.
         - "Summarize": summarize the final playlist.

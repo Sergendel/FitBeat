@@ -25,10 +25,23 @@ into personalized MP3 playlists.
 - Initially ranks candidate tracks based on embedding similarity between the user's prompt embedding and the tracks' context embeddings, then selects the top-k candidates.
 - Performs further semantic refinement (RAG-based) using LLM-based semantic analysis to finalize rankings based on emotional and contextual relevance.
 
-### 3. Final Track Retrieval and Conversion
 
-- Downloads selected tracks from YouTube.
-- Converts tracks to MP3 for easy listening.
+
+
+### 3. Final Recommendation & Output (Conditional)
+Depending on the application configuration (FRONTEND_MODE), FitBeat provides one of two outputs:
+
+- Frontend Mode (FRONTEND_MODE=True):
+
+- - Creates a structured, interactive recommendation table (Artist, Track Name, YouTube link).
+
+- - Does not download or convert audio.
+
+- Full Mode (FRONTEND_MODE=False):
+
+- - Creates the recommendation table.
+
+- - Additionally, downloads selected tracks from YouTube and converts them to MP3 format.
 ---
 
 ## 🚀 **Agent's Internal Workflow (Pipeline)**
@@ -57,6 +70,7 @@ Translates the textual action plan into structured, machine-readable JSON action
 - **Analyze:** Convert user's prompt into numeric audio parameters.
 - **Filter:** Filter tracks from the dataset based on numeric audio parameters.
 - **Refine:**  Hybrid Semantic Ranking (Embeddings & RAG) of tracks.
+- **Create_Recommendation_Table:**  Create structured, interactive recommendation table (Artist, Track Name, YouTube link).
 - **Retrieve_and_Convert:** Download selected tracks from YouTube and convert to MP3.
 - **Summarize:** Generate and present a concise summary of the final playlist.
 
@@ -76,6 +90,9 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
 - **Hybrid Semantic Ranking (Embeddings & RAG):**  
   Ranks candidate tracks based on semantic relevance by analyzing lyrics and descriptions retrieved from Genius.com, using the embeddings similaruty and LLM through (RAG).
 
+- **Create Recommendation Table:**  
+   Generates structured playlist table (playlist.json and playlist.csv) with direct YouTube links.
+
 - **Retrieve and Convert:**  
   Downloads refined tracks from YouTube (`yt-dlp`) and converts them to MP3 (`ffmpeg`).
 
@@ -83,6 +100,7 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
   Provides a summary of the final recommended playlist.
 
 > **The agent may selectively apply some (or all) of these tools, based on the action plan it autonomously generates.**
+> **Note: Retrieve_and_Convert is executed only if FRONTEND_MODE=False..**
 
 
 ## 🧠 **Agent Memory (Persistent Context Management)**
@@ -244,6 +262,9 @@ FitBeat/
 │       └── download_Kaggle_data.py
 ├── eda/                         # Exploratory Data Analysis scripts
 │   └── kaggle_eda.py
+├── output/                  # Outputs (playlists, audio tracks)
+│   ├── playlists/           # Playlist tables (JSON, CSV)
+│   └── audio/               # Downloaded tracks (conditional)
 ├── extract/                     # Data extraction scripts
 │   ├── extract_base.py
 │   ├── extract_file.py
@@ -338,30 +359,21 @@ Do you want to clear previous memory and start a new unrelated task? (y/n):
 ### ✅ **5. Example of execution **
 
 ```bash
-# # Scenario 4: memory
-    # # first run with
-    # user_prompt = "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
-    # # next run
-    user_prompt = "I forgot to say that we would probably dance during our date"
+C:\Users\serge\miniconda3\envs\validate_env\python.exe C:\work\INTERVIEW_PREPARATION\FitBeat\src\orchestrator.py 
 
-    orchestrator.run_planning_agent(user_prompt, num_tracks=20)
-```
-execution log: 
-```bash
-\orchestrator.py 
 
 ####################################################################################################
 ### Step 1: Loading existing memory (if available) and constructing the combined prompt:
 
 Existing memory loaded:
-       "The human asks the AI for a playlist for a romantic date, specifically with tracks that have deeply meaningful and romantic lyrics."
+       "The human asks the AI to create a playlist for a romantic date with tracks that have deep meaning."
 
-*****   Do you want to clear previous memory and start a new unrelated task? (y/n): n
+***** Do you want to clear previous memory and start a new unrelated task? (y/n): n
 
 Continuing with existing memory.
 
 Combined Prompt (with memory context): 
-     "The human asks the AI for a playlist for a romantic date, specifically with tracks that have deeply meaningful and romantic lyrics.
+     "The human asks the AI to create a playlist for a romantic date with tracks that have deep meaning.
 New request: I forgot to say that we would probably dance during our date"
 
 
@@ -370,18 +382,18 @@ New request: I forgot to say that we would probably dance during our date"
 ### Step 2: LLM is analyzing user request and generating the textual plan of actions...:
 
 Textual Plan of Actions:
- 1. Analyze emotional description into numeric parameters.
-2. Filter dataset based on numeric audio parameters.
-3. Refine using semantic analysis (lyrics, meaning, context).
-4. Retrieve_and_Convert tracks from YouTube.
-5. Summarize and present final playlist.
+ 1. Analyze into numeric parameters for romantic and danceable tracks.
+2. Filter numerically for romantic and upbeat tracks suitable for dancing.
+3. Refine semantically to select tracks with deep meanings and emotional depth.
+4. Create_Recommendation_Table.
+5. Summarize the final playlist.
 
 
 ####################################################################################################
 ### Step 3: LLM is converting textual plan of actions to the structured one...
 
 Structured Plan of Actions:
- {'actions': ['Analyze', 'Filter', 'Refine', 'Retrieve_and_Convert', 'Summarize']}
+ {'actions': ['Analyze', 'Filter', 'Refine', 'Create_Recommendation_Table', 'Summarize']}
 
 
 ####################################################################################################
@@ -390,7 +402,7 @@ Structured Plan of Actions:
 --------------------------------------------------
 Action # 1. Analyze
 
-LLM is analyzing the user prompt: "The human asks the AI for a playlist for a romantic date, specifically with tracks that have deeply meaningful and romantic lyrics.
+LLM is analyzing the user prompt: "The human asks the AI to create a playlist for a romantic date with tracks that have deep meaning.
 New request: I forgot to say that we would probably dance during our date"
 to derive numeric audio parameters.
 Additionally, the LLM suggests a suitable folder name for the playlist.
@@ -400,14 +412,14 @@ Resulting ranges of numerical audio parameters:
   - Danceability: [0.6, 0.8]
   - Energy: [0.4, 0.7]
   - Loudness: [-20, -8]
-  - Mode: [1, 1]
+  - Mode: None
   - Speechiness: [0, 0.4]
   - Acousticness: [0.2, 0.6]
-  - Instrumentalness: [0, 0.3]
+  - Instrumentalness: [0, 0.5]
   - Liveness: [0, 0.3]
-  - Valence: [0.6, 1]
-  - Tempo: [80, 120]
-  - Time_signature: [3, 4]
+  - Valence: [0.5, 0.8]
+  - Tempo: [90, 120]
+  - Time_signature: None
   - Track_genre: None
 
 ****   The tracks will be stored in the folder 'romantic_dance'   *****.
@@ -420,25 +432,25 @@ Searching Kaggle dataset for matching tracks...
 
  20 Selected Tracks :
     -56050 Sofia – Clairo
-    -25054 Wake Me Up Before You Go-Go – Wham!
-    -8309 For What It's Worth – Buffalo Springfield
+    -20701 Go Crazy – Chris Brown;Young Thug
+    -64000 Just the Two of Us (feat. Bill Withers) – Grover Washington, Jr.;Bill Withers
     -37557 Lovely Day – Bill Withers
-    -8533 Listen to the Music – The Doobie Brothers
-    -19608 The Gambler – Kenny Rogers
     -37252 I Just Called To Say I Love You – Stevie Wonder
-    -99826 I'm On Fire – Bruce Springsteen
-    -19611 Jolene – Dolly Parton
+    -11190 Sympathy For The Devil - 50th Anniversary Edition – The Rolling Stones
     -80045 Chola Chola – Sathyaprakash;VM Mahalingam;Nakul Abhyankar
     -107222 Relax – Frankie Goes To Hollywood
-    -106174 Super Trouper – ABBA
-    -488 Blister In The Sun – Violent Femmes
-    -5052 4:00A.M. – Taeko Onuki
-    -80089 Chola Chola (From "Ponniyin Selvan Part -1") – A.R. Rahman;Sathyaprakash;VM Mahalingam;Nakul Abhyankar
-    -90260 You Got It – Roy Orbison
+    -64500 Just the Two of Us – Grover Washington, Jr.
+    -20250 Eyes Off You – PRETTYMUCH
     -31952 Showed Me (How I Fell In Love With You) – Madison Beer
+    -80089 Chola Chola (From "Ponniyin Selvan Part -1") – A.R. Rahman;Sathyaprakash;VM Mahalingam;Nakul Abhyankar
+    -80050 Ajab Si – KK
+    -90260 You Got It – Roy Orbison
     -47412 Burning Heart - From "Rocky IV" Soundtrack – Survivor
-    -25727 Addicted To Love – Robert Palmer;Eric 'ET' Thorngren
-    -56700 Dissolve – Absofacto
+    -107283 Dance Hall Days – Wang Chung
+    -80131 Saiyaara – Sohail Sen;Mohit Chauhan;Taraannum Mallik;Kausar Munir
+    -19909 New Kid in Town - 2013 Remaster – Eagles
+    -103920 Human Nature – Michael Jackson
+    -80157 O Sanam – Lucky Ali
 
 --------------------------------------------------
 Action # 3. Refine
@@ -457,72 +469,34 @@ Semantic refinement (RAG) completed successfully!
 
 Ranked Playlist:
 1. I Just Called To Say I Love You by Stevie Wonder
-2. Sofia by Clairo
-3. Showed Me (How I Fell In Love With You) by Madison Beer
-4. Lovely Day by Bill Withers
-5. Jolene by Dolly Parton
-6. Super Trouper by ABBA
-7. Dissolve by Absofacto
-8. The Gambler by Kenny Rogers
-9. Blister In The Sun by Violent Femmes
+2. Lovely Day by Bill Withers
+3. Human Nature by Michael Jackson
+4. Sofia by Clairo
+5. Showed Me (How I Fell In Love With You) by Madison Beer
+6. Dance Hall Days by Wang Chung
+7. Go Crazy by Chris Brown;Young Thug
+8. O Sanam by Lucky Ali
 
 --------------------------------------------------
-Action # 4. Retrieve_and_Convert
-
-Downloading recommended tracks and converting to MP3...
-Saving playlist to folder: 'C:\work\INTERVIEW_PREPARATION\FitBeat\audio\downloaded_tracks\romantic_date_dance_playlist'
-
-Downloaded and converted: 01 - Stevie Wonder - I Just Called To Say I Love You.mp3
-Downloaded and converted: 02 - Clairo - Sofia.mp3
-Downloaded and converted: 03 - Madison Beer - Showed Me (How I Fell In Love With You).mp3
-Downloaded and converted: 04 - Bill Withers - Lovely Day.mp3
-Downloaded and converted: 05 - Dolly Parton - Jolene.mp3
-Downloaded and converted: 06 - ABBA - Super Trouper.mp3
-Downloaded and converted: 07 - Absofacto - Dissolve.mp3
-Downloaded and converted: 08 - Kenny Rogers - The Gambler.mp3
-Downloaded and converted: 09 - Violent Femmes - Blister In The Sun.mp3
-
---------------------------------------------------
-Action # 5. Summarize
-
-Final Recommendations:
-1. I Just Called To Say I Love You by Stevie Wonder | 
-   Popularity: 75 | Tempo: 113.535 BPM | Explicit: False | Danceability: 0.748 | Energy: 0.551 | Loudness: -9.054 dB | Mode: Major | Speechiness: 0.0239 | Acousticness: 0.243 | Instrumentalness: 1.57e-06 | Liveness: 0.0943 | Valence: 0.65 | Time Signature: 4 | Genre: funk
-
-2. Sofia by Clairo | 
-   Popularity: 81 | Tempo: 112.997 BPM | Explicit: False | Danceability: 0.744 | Energy: 0.619 | Loudness: -9.805 dB | Mode: Major | Speechiness: 0.039 | Acousticness: 0.598 | Instrumentalness: 0.00372 | Liveness: 0.231 | Valence: 0.641 | Time Signature: 4 | Genre: indie-pop
-
-3. Showed Me (How I Fell In Love With You) by Madison Beer | 
-   Popularity: 69 | Tempo: 95.02 BPM | Explicit: False | Danceability: 0.723 | Energy: 0.542 | Loudness: -8.5 dB | Mode: Minor | Speechiness: 0.026 | Acousticness: 0.476 | Instrumentalness: 0.0826 | Liveness: 0.0928 | Valence: 0.675 | Time Signature: 4 | Genre: electro
-
-4. Lovely Day by Bill Withers | 
-   Popularity: 76 | Tempo: 97.923 BPM | Explicit: False | Danceability: 0.692 | Energy: 0.651 | Loudness: -8.267 dB | Mode: Major | Speechiness: 0.0324 | Acousticness: 0.292 | Instrumentalness: 0.00241 | Liveness: 0.105 | Valence: 0.706 | Time Signature: 4 | Genre: funk
-
-5. Jolene by Dolly Parton | 
-   Popularity: 73 | Tempo: 110.578 BPM | Explicit: False | Danceability: 0.674 | Energy: 0.537 | Loudness: -10.971 dB | Mode: Minor | Speechiness: 0.0363 | Acousticness: 0.566 | Instrumentalness: 0.0 | Liveness: 0.131 | Valence: 0.809 | Time Signature: 4 | Genre: country
-
-6. Super Trouper by ABBA | 
-   Popularity: 72 | Tempo: 118.34 BPM | Explicit: False | Danceability: 0.764 | Energy: 0.626 | Loudness: -8.274 dB | Mode: Major | Speechiness: 0.0288 | Acousticness: 0.457 | Instrumentalness: 6.35e-06 | Liveness: 0.201 | Valence: 0.961 | Time Signature: 4 | Genre: swedish
-
-7. Dissolve by Absofacto | 
-   Popularity: 68 | Tempo: 85.486 BPM | Explicit: False | Danceability: 0.688 | Energy: 0.582 | Loudness: -10.668 dB | Mode: Minor | Speechiness: 0.0542 | Acousticness: 0.23 | Instrumentalness: 0.000157 | Liveness: 0.0663 | Valence: 0.872 | Time Signature: 4 | Genre: indie-pop
-
-8. The Gambler by Kenny Rogers | 
-   Popularity: 75 | Tempo: 87.04 BPM | Explicit: False | Danceability: 0.671 | Energy: 0.501 | Loudness: -13.119 dB | Mode: Major | Speechiness: 0.0594 | Acousticness: 0.342 | Instrumentalness: 0.0 | Liveness: 0.194 | Valence: 0.86 | Time Signature: 4 | Genre: country
-
-9. Blister In The Sun by Violent Femmes | 
-   Popularity: 71 | Tempo: 96.889 BPM | Explicit: False | Danceability: 0.726 | Energy: 0.537 | Loudness: -8.896 dB | Mode: Major | Speechiness: 0.114 | Acousticness: 0.316 | Instrumentalness: 0.0 | Liveness: 0.0707 | Valence: 0.882 | Time Signature: 4 | Genre: acoustic
+Action # 4. Create_Recommendation_Table
 
 
-All actions executed successfully!
+Recommended Playlist:
 
-Memory updated and saved for future sessions.
+Artist                 Track Name                              Official YouTube Link                      
+         Stevie Wonder         I Just Called To Say I Love You https://www.youtube.com/watch?v=1bGOgY1CmiU
+          Bill Withers                              Lovely Day https://www.youtube.com/watch?v=bEeaS6fuUoA
+       Michael Jackson                            Human Nature https://www.youtube.com/watch?v=ElN_4vUvTPs
+                Clairo                                   Sofia https://www.youtube.com/watch?v=L9l8zCOwEII
+          Madison Beer Showed Me (How I Fell In Love With You) https://www.youtube.com/watch?v=khCziHJQSwg
+            Wang Chung                         Dance Hall Days https://www.youtube.com/watch?v=V-xpJRwIA-Q
+Chris Brown;Young Thug                                Go Crazy https://www.youtube.com/watch?v=dPhwbZBvW2o
+             Lucky Ali                                 O Sanam https://www.youtube.com/watch?v=dWqb-WqbGh8
 
-Process finished with exit code 0
-
+JSON playlist saved to 'output\playlists\romantic_date_dance_playlist\playlist.json'
+CSV playlist saved to 'output\playlists\romantic_date_dance_playlist\playlist.csv'
 
 ```
-
 
 
 ## 👤 **Author**

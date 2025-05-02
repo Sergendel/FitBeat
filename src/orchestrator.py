@@ -3,12 +3,13 @@ import warnings
 from dotenv import load_dotenv
 from langchain_core._api.deprecation import LangChainDeprecationWarning
 
+import config
 from extract.extract_file import ExtractFile
 from src.filtering_utils import filter_tracks_by_audio_params
 from src.llm_executor import LLMExecutor
 from src.memory_manager import MemoryManager
 from src.output_parser import OutputParser
-from src.playlist_summary import summarize_results
+from src.playlist_utils import create_recommendation_table, summarize_results
 from src.prompt_engineer import PromptEngineer
 from src.rag_semantic_refiner import RAGSemanticRefiner
 from src.track_downloader import TrackDownloader
@@ -27,6 +28,7 @@ class Orchestrator:
         self.downloader = TrackDownloader()
         self.dataset = ExtractFile().load_data()
         self.filter_tracks_by_audio_params = filter_tracks_by_audio_params
+        self.create_recommendation_table = create_recommendation_table
         self.summarize_results = summarize_results
         self.prompt_to_audio_params = prompt_to_audio_params
         self.semantic_refiner = RAGSemanticRefiner()
@@ -42,6 +44,7 @@ class Orchestrator:
             "Filter": self.filter_tracks_by_audio_params,
             "Refine": self.semantic_refiner.hybrid_refine_tracks,
             "Retrieve_and_Convert": self.downloader.retrieve_and_convert,
+            "Create_Recommendation_Table": self.create_recommendation_table,
             "Summarize": self.summarize_results,
         }
 
@@ -119,6 +122,8 @@ class Orchestrator:
             - "Filter": Filters tracks based on numeric audio parameters.
             - "Refine": Performs semantic refinement using lyrics and
                         semantic context (RAG).
+            - "Create_Recommendation_Table": Create a table including
+                                 Artist names, Track names, and Official YouTube links.
             - "Retrieve_and_Convert": Downloads tracks from YouTube and
                                       converts them to MP3.
             - "Summarize": Summarizes and displays the
@@ -144,6 +149,11 @@ class Orchestrator:
             print("\n" + "-" * 50)
             print(f"Action # {i_a + 1}. {action}")
 
+            # Check  frontend mode
+            if config.FRONTEND_MODE and action == "Retrieve_and_Convert":
+                print("Skipping 'Retrieve_and_Convert' due to FRONTEND_MODE=True.")
+                continue
+
             action_method = self.action_mapping.get(action)
             if not action_method:
                 print(f"Error: Unknown action '{action}'.")
@@ -164,6 +174,14 @@ class Orchestrator:
                     print("Error: No tracks to refine.")
                     return
                 tracks, folder_name = action_method(user_prompt, tracks, folder_name)
+
+            elif action == "Create_Recommendation_Table":
+                if tracks is None or tracks.empty:
+                    print(
+                        "Error: No tracks available for recommendation table."
+                    )
+                    return
+                action_method(tracks, folder_name)
 
             elif action == "Retrieve_and_Convert":
                 if tracks is None:
@@ -193,9 +211,9 @@ if __name__ == "__main__":
     # user_prompt = "music for romantic date"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
-    user_prompt = (
-        "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
-    )
+    # user_prompt = (
+    # "playlist for romantic date, tracks with deeply meaningful and romantic lyrics"
+    # )
 
     # Scenario 3:
     # user_prompt = (
@@ -215,6 +233,6 @@ if __name__ == "__main__":
     # user_prompt = "playlist for romantic date, tracks with deeply meaningful "
     # "and romantic lyrics"
     # # next run
-    # user_prompt = "I forgot to say that we would probably dance during our date"
+    user_prompt = "I forgot to say that we would probably dance during our date"
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=20)
