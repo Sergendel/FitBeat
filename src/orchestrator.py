@@ -177,9 +177,7 @@ class Orchestrator:
 
             elif action == "Create_Recommendation_Table":
                 if tracks is None or tracks.empty:
-                    print(
-                        "Error: No tracks available for recommendation table."
-                    )
+                    print("Error: No tracks available for recommendation table.")
                     return
                 action_method(tracks, folder_name)
 
