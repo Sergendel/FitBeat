@@ -22,10 +22,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
           pip install pytest flake8 Flake8-pyproject black isort
 
       - name: Check formatting (Black)
@@ -38,7 +37,6 @@ jobs:
         run: flake8 .
 
       - name: Run Unit tests
-        working-directory: ./backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
@@ -47,10 +45,9 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: |
-          python -u -m pytest tests/unit/ -s
+          python -u -m pytest backend/tests/unit/ -s
 
       - name: Run E2E tests
-        working-directory: ./backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
@@ -59,4 +56,4 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: |
-          python -u -m pytest tests/e2e/ --capture=no -s
+          python -u -m pytest backend/tests/e2e/ --capture=no -s
