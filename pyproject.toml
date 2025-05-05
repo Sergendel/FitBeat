@@ -15,5 +15,7 @@ exclude = [
     "env",
     ".venv",
     "venv",
-    ".utils"
+    ".utils",
+    "deployment/template.yaml",
+    "backend/resources/bin"
 ]

@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09' #  Version of CloudFormation used.
+Transform: AWS::Serverless-2016-10-31  # AWS SAM transforms the template into AWS resources
+Description: FitBeat Lambda with two API endpoints.
+
+Globals:                                # Default settings for all Lambda functions.
+  Function:
+    Timeout: 30
+    MemorySize: 512
+
+Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoints).
+  FitBeatFunction:                       # Logical name for the Lambda function.
+    Type: AWS::Serverless::Function      # Defines the resource as a serverless Lambda function.
+    Properties:                          # Configuration for the Lambda function.
+      CodeUri: ../deployment/                   # Directory containing Lambda code.
+      Handler: app.lambda_handler        # Entry point of the Lambda (filename.function).
+      Runtime: python3.11                # Python runtime version.
+      Role: !GetAtt FitBeatLambdaExecutionRole.Arn # Attaches your custom IAM role.
+#      Policies:                         # IAM permissions
+#        - AWSSecretsManagerGetSecretValuePolicy:
+#            SecretArn: arn:deployment:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP
+      Environment:                       # Environment Variables
+        Variables:
+          SECRET_NAME: fitbeat           # Name of the secret stored in AWS Secrets Manager.
+      Events:                            # API endpoints definition
+        RecommendApi:                    # Identifier for the recommend API endpoint.
+          Type: Api
+          Properties:
+            Path: /recommend             # Defines the API Gateway route.
+            Method: post                 # HTTP method for this endpoint.
+        StatusApi:                       # Identifier for the status API endpoint.
+          Type: Api
+          Properties:
+            Path: /status                # define the API Gateway route
+            Method: get                  # method
+
+  FitBeatLambdaExecutionRole:                     # Custom IAM role for Lambda function.
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:                 # Defines who can assume this role (Lambda service).
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow                       # Indicates that the action specified (sts:AssumeRole) is allowed
+              Principal:                          # Defines who can assume this IAM role
+                Service: lambda.amazonaws.com     # allows only the AWS Lambda service (lambda.amazonaws.com) to use this role
+              Action: sts:AssumeRole              # Specifies the exact AWS API action allowed.
+        Path: /   # hierarchical structure or "location" for the IAM role or user
+        Policies:                                     # Permissions policies attached to this role.
+          - PolicyName: SecretsManagerAccess          # Permission to access Secrets Manager. Human-readable name for the policy.
+            PolicyDocument:                           # contains the detailed permission rules
+              Version: "2012-10-17"                   # AWS IAM policy syntax version
+              Statement:                          # Defines one or more permission rules
+                - Effect: Allow                   # Permits the action listed. (Alternative is Deny.)
+                  Action:                            # Allows the IAM role (your Lambda function)
+                    - secretsmanager:GetSecretValue  # to retrieve (Get) the secret's value
+                  Resource: arn:deployment:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP # specifies exactly which secret this policy applies to.
+          - PolicyName: CloudWatchLogs            # Permissions for logging to CloudWatch.
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "arn:deployment:logs:*:*:*"
+
+
+
+Outputs:                                 # Outputs the generated API Gateway endpoints after deployment.
+  RecommendApi:
+    Description: "API Gateway endpoint for POST /recommend"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/recommend/"
+
+  StatusApi:
+    Description: "API Gateway endpoint for GET /status"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status/"
+
