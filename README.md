@@ -97,7 +97,7 @@ FitBeat utilizes explicit, concrete operational tools to execute the generated a
   Provides a summary of the final recommended playlist.
 
 > **The agent may selectively apply some (or all) of these tools, based on the action plan it autonomously generates.**
-> **Note: Retrieve_and_Convert is executed only if FRONTEND_MODE=False..**
+  **Note: Retrieve_and_Convert is executed only if FRONTEND_MODE=False..**
 
 
 ## 🧠 **Agent Memory (Persistent Context Management)**
@@ -229,75 +229,6 @@ Demonstrates memory across sequential interactions:
 
 These scenarios clearly show FitBeat's flexible, context-aware decision-making and dynamic tool selection capability.
 
-## 📂 **Project Structure**
-
-```
-FitBeat/
-FitBeat/
-├── .github/                     # GitHub actions & workflows configuration
-├── bin/                         # Binaries and executable dependencies (e.g., ffmpeg)
-│   ├── ffmpeg.exe
-│   ├── ffplay.exe
-│   └── ffprobe.exe
-├── corpus/                      # Corpus data and embedding utilities
-│   ├── embeddings/
-│   │   ├── genius_corpus_db/    # Embeddings database for semantic retrieval (ChromaDB)
-│   │   │   ├── chroma.sqlite3
-│   │   │   └── eb90c47c-e55c-4bf5-84b4-517c051c9c83/
-│   │   │       ├── data_level0.bin
-│   │   │       ├── header.bin
-│   │   │       ├── length.bin
-│   │   │       └── link_lists.bin
-│   │   ├── generate_embeddings.py
-│   │   ├── semantic_retrieval.py
-│   │   └── __init__.py
-│   ├── corpus_metadata.csv      # Metadata for corpus data
-│   ├── create_basic_corpus.py   # Script for basic corpus generation
-│   ├── genius_corpus_simple.py  # Simple script for corpus creation using Genius API
-│   └── __init__.py
-├── data/                        # Data storage and scripts for dataset handling
-│   └── kaggle/
-│       ├── check_genres.py
-│       ├── dataset.csv
-│       └── download_Kaggle_data.py
-├── eda/                         # Exploratory Data Analysis scripts
-│   └── kaggle_eda.py
-├── output/                  # Outputs (playlists, audio tracks)
-│   ├── playlists/           # Playlist tables (JSON, CSV)
-│   └── audio/               # Downloaded tracks (conditional)
-├── extract/                     # Data extraction scripts
-│   ├── extract_base.py
-│   ├── extract_file.py
-│   └── __init__.py
-├── src/                         # Core application logic
-│   ├── dataset_genres.py
-│   ├── filtering_utils.py
-│   ├── llm_executor.py
-│   ├── memory_manager.py
-│   ├── orchestrator.py          # Main orchestration script to run the application
-│   ├── output_parser.py
-│   ├── playlist_summary.py
-│   ├── prompt_engineer.py
-│   ├── rag_semantic_refiner.py
-│   ├── song_utils.py
-│   ├── track_downloader.py
-│   ├── user_prompt_utils.py
-│   └── __init__.py
-├── tests/                       # Unit and end-to-end tests
-│   ├── e2e/
-│   │   ├── test_e2e_orchestrator.py
-│   │   └── __init__.py
-│   ├── unit/
-│   │   ├── test_fitbeat.py
-│   │   └── __init__.py
-│   ├── conftest.py              # Shared testing fixtures and configurations
-│   └── __init__.py
-├── .env.example                 # Example environment configuration
-├── .gitignore                   # Git ignore rules
-├── config.py                    # Application configuration file
-└── README.md                    # Main project README documentation
-
-```
 
 ## 🚀 **How to Run**
 
@@ -342,7 +273,7 @@ GENIUS_API_KEY="your-genius-api-key"
 Execute the orchestrator script with your desired prompt:
 
 ```bash
-python -m src.orchestrator
+python -m core.orchestrator
 ```
 
 The application will ask if you wish to continue using existing memory or clear it:

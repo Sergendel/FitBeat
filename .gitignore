@@ -1,5 +1,5 @@
 # output folder
-output
+backend/output
 
 # Byte-compiled files
 __pycache__/
@@ -13,8 +13,8 @@ venv/
 .venv/
 
 # Sensitive information
-.env
-.env.*
+backend/.env
+backend/.env.example
 .secrets/
 
 # IDE directories
@@ -28,6 +28,7 @@ tmp/
 
 # Custom project-specific ignores (if applicable)
 .utils/
+backend/deployment/.app_utils
 audio/downloaded_tracks/
 genius_corpus/
 *.mp3
@@ -35,6 +36,6 @@ genius_corpus/
 *.md
 
 # included
-!requirements.txt
-!.env.example
+!backend/requirements.txt
+!backend/.env.example
 !README.md

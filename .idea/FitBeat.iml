@@ -4,9 +4,9 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.utils" />
       <excludeFolder url="file://$MODULE_DIR$/audio/downloaded_tracks" />
-      <excludeFolder url="file://$MODULE_DIR$/corpus/genius_corpus" />
+      <excludeFolder url="file://$MODULE_DIR$/backend/corpus/genius_corpus" />
     </content>
-    <orderEntry type="jdk" jdkName="validate_env" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="fitbeat_env" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
