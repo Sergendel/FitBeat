@@ -213,8 +213,8 @@ if __name__ == "__main__":
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
     # user_prompt = (
-    #     "playlist for romantic date, tracks with deeply meaningful and romantic lyrics,"
-    #     "I need playlist and mp3 files"
+    #     "playlist for romantic date, tracks with deeply meaningful "
+    #     "and romantic lyrics, I need playlist and mp3 files"
     # )
 
     # Scenario 3:
