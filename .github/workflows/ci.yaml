@@ -40,6 +40,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
+          PYTHONPATH: ${{ github.workspace }}
           OMP_NUM_THREADS: "1"
           OPENBLAS_NUM_THREADS: "1"
           MKL_NUM_THREADS: "1"
@@ -51,6 +52,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GENIUS_API_KEY: ${{ secrets.GENIUS_API_KEY }}
+          PYTHONPATH: ${{ github.workspace }}
           OMP_NUM_THREADS: "1"
           OPENBLAS_NUM_THREADS: "1"
           MKL_NUM_THREADS: "1"
