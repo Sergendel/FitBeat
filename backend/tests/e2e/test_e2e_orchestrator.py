@@ -8,7 +8,7 @@ from pathlib import Path
 def test_orchestrator_e2e():
     # Run orchestrator as module to verify full import path correctness
     result = subprocess.run(
-        [sys.executable, "-m", "core.orchestrator"],
+        [sys.executable, "-m", "backend.core.orchestrator"],
         capture_output=True,
         text=True,
         cwd=Path(__file__)
