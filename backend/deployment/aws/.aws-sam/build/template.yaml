@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FitBeat Lambda with two API endpoints.
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+Resources:
+  FitBeatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: FitBeatFunction
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Role:
+        Fn::GetAtt:
+        - FitBeatLambdaExecutionRole
+        - Arn
+      Environment:
+        Variables:
+          SECRET_NAME: fitbeat
+      Events:
+        RecommendApi:
+          Type: Api
+          Properties:
+            Path: /recommend
+            Method: post
+        StatusApi:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: get
+    Metadata:
+      SamResourceId: FitBeatFunction
+  FitBeatLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: SecretsManagerAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource: arn:aws:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP
+      - PolicyName: CloudWatchLogs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+Outputs:
+  RecommendApi:
+    Description: API Gateway endpoint for POST /recommend
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/recommend/
+  StatusApi:
+    Description: API Gateway endpoint for GET /status
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status/
