@@ -11,7 +11,7 @@ Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoi
   FitBeatFunction:                       # Logical name for the Lambda function.
     Type: AWS::Serverless::Function      # Defines the resource as a serverless Lambda function.
     Properties:                          # Configuration for the Lambda function.
-      CodeUri: ../deployment/                   # Directory containing Lambda code.
+      CodeUri: ./                  # Directory containing Lambda code.
       Handler: app.lambda_handler        # Entry point of the Lambda (filename.function).
       Runtime: python3.11                # Python runtime version.
       Role: !GetAtt FitBeatLambdaExecutionRole.Arn # Attaches your custom IAM role.
@@ -52,7 +52,7 @@ Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoi
                 - Effect: Allow                   # Permits the action listed. (Alternative is Deny.)
                   Action:                            # Allows the IAM role (your Lambda function)
                     - secretsmanager:GetSecretValue  # to retrieve (Get) the secret's value
-                  Resource: arn:deployment:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP # specifies exactly which secret this policy applies to.
+                  Resource: arn:aws:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP # specifies exactly which secret this policy applies to.
           - PolicyName: CloudWatchLogs            # Permissions for logging to CloudWatch.
             PolicyDocument:
               Version: "2012-10-17"
