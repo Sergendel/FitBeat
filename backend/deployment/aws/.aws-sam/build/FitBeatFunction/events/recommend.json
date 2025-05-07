@@ -1,5 +1,0 @@
-{
-  "httpMethod": "POST",
-  "path": "/recommend",
-  "body": "{\"description\": \"music for relaxation\"}"
-}

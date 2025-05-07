@@ -5,7 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from backend import config
-from backend.core import generate_song_context
+from backend.core.song_utils import generate_song_context
 
 # Load environment variables
 load_dotenv()

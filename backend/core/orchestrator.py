@@ -24,8 +24,8 @@ load_dotenv()
 
 
 class Orchestrator:
-    def __init__(self):
-        self.llm_executor = LLMExecutor()
+    def __init__(self, open_ai_key=None):
+        self.llm_executor = LLMExecutor(open_ai_key=open_ai_key)
         self.prompt_engineer = PromptEngineer()
         self.parser = OutputParser()
         self.downloader = TrackDownloader()
@@ -145,7 +145,7 @@ class Orchestrator:
         Returns:
             None:
         """
-
+        playlist = None
         params = folder_name = tracks = None
 
         for i_a, action in enumerate(actions_list):
@@ -182,7 +182,7 @@ class Orchestrator:
                 if tracks is None or tracks.empty:
                     print("Error: No tracks available for recommendation table.")
                     return
-                action_method(tracks, folder_name)
+                playlist = action_method(tracks, folder_name)
 
             elif action == "Retrieve_and_Convert":
                 if tracks is None:
@@ -201,12 +201,16 @@ class Orchestrator:
 
         print("\nAll actions executed successfully!")
 
+        return playlist
+
 
 # Example Usage
 if __name__ == "__main__":
     orchestrator = Orchestrator()
 
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
+
+    user_prompt = "please create a playlist of Canadian songs"
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
     # user_prompt = "music for romantic date"
@@ -235,6 +239,6 @@ if __name__ == "__main__":
     # user_prompt = "playlist for romantic date, tracks with deeply meaningful "
     # "and romantic lyrics"
     # # next run
-    user_prompt = "I forgot to say that we would probably dance during our date"
+    # user_prompt = "I forgot to say that we would probably dance during our date"
 
     orchestrator.run_planning_agent(user_prompt, num_tracks=20)

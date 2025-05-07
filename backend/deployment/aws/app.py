@@ -4,6 +4,8 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
+from backend.core.orchestrator import Orchestrator
+
 # Initialize AWS Secrets Manager client
 secretsmanager = boto3.client("secretsmanager")
 
@@ -33,8 +35,8 @@ def lambda_handler(event, context):
     path = event["path"]
 
     # Retrieve secrets (API keys)
-    # secrets = get_secrets()
-    # openai_api_key = secrets["OPENAI_API_KEY"]
+    secrets = get_secrets()
+    openai_api_key = secrets["OPENAI_API_KEY"]
     # genius_api_key = secrets["GENIUS_API_KEY"]
     # print(f"keys = {openai_api_key} and {genius_api_key}")
 
@@ -42,22 +44,10 @@ def lambda_handler(event, context):
         # Handle POST /recommend requests
         body = json.loads(event["body"])
         description = body.get("description", "")
-        print(f"description = {description}")
-        # TODO: Use `openai_api_key` and `genius_api_key`
-        #  with actual recommendation logic
-        # Placeholder recommendation response:
-        playlist = [
-            {
-                "artist": "Nick Drake",
-                "track": "Northern Sky",
-                "youtube_link": "https://www.youtube.com/watch?v=S3jCFeCtSjk",
-            },
-            {
-                "artist": "Phosphorescent",
-                "track": "Song for Zula",
-                "youtube_link": "https://www.youtube.com/watch?v=ZPxQYhGpdvg",
-            },
-        ]
+        # print(f"description = {description}")
+
+        orchestrator = Orchestrator(openai_api_key)
+        playlist = orchestrator.run_planning_agent(description, num_tracks=20)
 
         return {
             "statusCode": 200,

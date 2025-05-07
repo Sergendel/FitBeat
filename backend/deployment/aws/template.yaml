@@ -11,8 +11,10 @@ Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoi
   FitBeatFunction:                       # Logical name for the Lambda function.
     Type: AWS::Serverless::Function      # Defines the resource as a serverless Lambda function.
     Properties:                          # Configuration for the Lambda function.
-      CodeUri: ./                  # Directory containing Lambda code.
-      Handler: app.lambda_handler        # Entry point of the Lambda (filename.function).
+      #CodeUri: ./                  # Directory containing Lambda code.
+      CodeUri: ../../
+      #Handler: app.lambda_handler        # Entry point of the Lambda (filename.function).
+      Handler: backend.deployment.aws.app.lambda_handler
       Runtime: python3.11                # Python runtime version.
       Role: !GetAtt FitBeatLambdaExecutionRole.Arn # Attaches your custom IAM role.
 #      Policies:                         # IAM permissions

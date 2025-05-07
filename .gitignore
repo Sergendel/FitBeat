@@ -28,7 +28,6 @@ tmp/
 
 # Custom project-specific ignores (if applicable)
 .utils/
-backend/deployment/.app_utils
 audio/downloaded_tracks/
 genius_corpus/
 *.mp3
@@ -39,3 +38,8 @@ genius_corpus/
 !backend/requirements.txt
 !backend/.env.example
 !README.md
+
+
+# aws deploy
+backend/deployment/aws/.aws-sam
+backend/deployment/aws/.app_utils

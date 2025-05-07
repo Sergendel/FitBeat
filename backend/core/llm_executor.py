@@ -11,9 +11,11 @@ from openai import OpenAI
 
 
 class LLMExecutor:
-    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2):
+    def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2, open_ai_key=None):
         load_dotenv()
-        api_key = os.getenv("OPENAI_API_KEY")
+        if open_ai_key is None:
+            api_key = os.getenv("OPENAI_API_KEY")
+
         if api_key is None:
             raise ValueError("OPENAI_API_KEY is not set in your .env file")
 

@@ -33,10 +33,10 @@ def lambda_handler(event, context):
     path = event["path"]
 
     # Retrieve secrets (API keys)
-    secrets = get_secrets()
-    openai_api_key = secrets["OPENAI_API_KEY"]
-    genius_api_key = secrets["GENIUS_API_KEY"]
-    print(f"keys = {openai_api_key} and {genius_api_key}")
+    # secrets = get_secrets()
+    # openai_api_key = secrets["OPENAI_API_KEY"]
+    # genius_api_key = secrets["GENIUS_API_KEY"]
+    # print(f"keys = {openai_api_key} and {genius_api_key}")
 
     if http_method == "POST" and path == "/recommend":
         # Handle POST /recommend requests
