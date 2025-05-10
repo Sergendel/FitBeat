@@ -1,40 +1,42 @@
-# Stage 1: Build stage installing dependencies
+# Stage 1: Build stage installing dependencies and upgrading SQLite explicitly
 FROM public.ecr.aws/lambda/python:3.11 AS build-image
 
-# Set working directory
+RUN yum update -y \
+    && yum install -y gcc make wget tar gzip
+
+# Explicitly compile and install SQLite (3.43.2)
+RUN wget https://sqlite.org/2023/sqlite-autoconf-3430200.tar.gz \
+    && tar xvf sqlite-autoconf-3430200.tar.gz \
+    && cd sqlite-autoconf-3430200 \
+    && ./configure --prefix=/usr \
+    && make \
+    && make install
+
+# Explicitly prepare Python dependencies
 WORKDIR /build
-
-# Copy requirements and install dependencies
 COPY backend/requirements.txt .
-
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt -t ./python \
     && find ./python -name "*.pyc" -delete \
     && find ./python -type d -name "__pycache__" -exec rm -rf {} + \
     && rm -rf python/nvidia \
               python/cusparselt \
-              python/triton \
-              python/*.dist-info
+              python/triton
 
-# Remove unnecessary heavy packages (examples)
-RUN rm -rf ./python/numpy/doc/ ./python/boto3/docs/ ./python/botocore/docs/
-
-# Clean unnecessary cache files and binaries
-RUN find ./python -name '*.pyc' -delete && \
-    find ./python -name '__pycache__' -type d -exec rm -rf {} +
-
-# Stage 2: Final stage (runtime Lambda image)
+# Stage 2: Final runtime Lambda image explicitly
 FROM public.ecr.aws/lambda/python:3.11
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy dependencies from build-image
+# Explicitly overwrite Lambda's default SQLite library
+COPY --from=build-image /usr/lib/libsqlite3.so.0 /var/lang/lib/libsqlite3.so.0
+COPY --from=build-image /usr/bin/sqlite3 /usr/bin/sqlite3
+
+# Explicitly copy Python dependencies
 COPY --from=build-image /build/python ${LAMBDA_TASK_ROOT}
 
-# Copy backend application code
-COPY backend/ .
-# COPY backend/core ./core
-# COPY backend/deployment ./deployment
+# Copy backend application explicitly
+COPY backend ./backend
 
-# Set Lambda handler
-CMD ["deployment.aws.app.lambda_handler"]
+# Explicitly set Lambda handler
+CMD ["backend.deployment.aws.app.lambda_handler"]

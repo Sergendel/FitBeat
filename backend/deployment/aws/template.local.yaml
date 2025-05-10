@@ -12,7 +12,8 @@ Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoi
     Type: AWS::Serverless::Function      # Defines the resource as a serverless Lambda function.
     Properties:                          # Configuration for the Lambda function.
       PackageType: Image                 # lambda image container used for deploy( image size 820Mb)
-      ImageUri: 280034924053.dkr.ecr.us-east-1.amazonaws.com/fitbeat-lambda:latest
+      #ImageUri: 280034924053.dkr.ecr.us-east-1.amazonaws.com/fitbeat-lambda:latest
+      ImageUri: fitbeat-lambda:latest    # local docker image
 #      lines below are unnecessary for docker: CodeUri, Handler,Runtime
 #      #CodeUri: ./                  # Directory containing Lambda code.
 #      CodeUri: ../../
@@ -26,6 +27,7 @@ Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoi
       Environment:                       # Environment Variables
         Variables:
           SECRET_NAME: fitbeat           # Name of the secret stored in AWS Secrets Manager.
+          OTEL_SDK_DISABLED: "true"
       Events:                            # API endpoints definition
         RecommendApi:                    # Identifier for the recommend API endpoint.
           Type: Api
