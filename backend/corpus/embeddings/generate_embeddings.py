@@ -4,16 +4,15 @@ from pathlib import Path
 
 import chromadb
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 
 from backend import config
 
 # Adjust sys.path explicitly to import project-specific configurations
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-
-# Initialize the embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# Initialize OpenAI client with API key explicitly from environment
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load corpus metadata (list of songs with associated details)
 metadata_df = pd.read_csv(config.CORPUS_METADATA_PATH)
@@ -46,8 +45,13 @@ for idx, row in metadata_df.iterrows():
         with open(song_path, "r", encoding="utf-8") as file:
             song_context = file.read()
 
-        # Generate embedding vector using the pre-trained model
-        embedding = model.encode(song_context).tolist()
+        # Generate embedding vector explicitly using OpenAI's embeddings API
+        response = client.embeddings.create(
+            input=song_context,
+            model="text-embedding-ada-002"
+        )
+
+        embedding = response.data[0].embedding
 
         # Explicitly add embedding to ChromaDB along with clearly defined metadata
         collection.add(
@@ -56,10 +60,8 @@ for idx, row in metadata_df.iterrows():
             documents=[song_context],
             metadatas=[
                 {
-                    "artists": row["artist"],  # Explicitly corrected and consistent
-                    "track_name": row[
-                        "track_name"
-                    ],  # Explicitly corrected and consistent
+                    "artists": row["artist"],
+                    "track_name": row["track_name"],
                     "genre": row["genre"],
                 }
             ],

@@ -4,23 +4,19 @@ from backend import config
 from backend.core.llm_executor import LLMExecutor
 from backend.core.output_parser import OutputParser
 from backend.core.prompt_engineer import PromptEngineer
-from backend.corpus.embeddings.semantic_retrieval import (
-    embed_user_prompt,
-    get_or_create_song_embedding,
-    set_collection,
-)
+from backend.corpus.embeddings.semantic_retrieval import SemanticRetrieval
 
 
 class RAGSemanticRefiner:
-    def __init__(self):
-        self.llm_executor = LLMExecutor()
+    def __init__(self,llm_executor = None, open_ai_key=None):
+        self.llm_executor = llm_executor
         self.parser = OutputParser()
         self.prompt_engineer = PromptEngineer()
-
+        self.SemanticRetrieval = SemanticRetrieval(open_ai_key=open_ai_key)
         # Set ChromaDB collection
-        self.collection = set_collection()
+        self.collection = self.SemanticRetrieval.set_collection()
 
-        self.embed_user_prompt = embed_user_prompt
+        self.embed_user_prompt = self.SemanticRetrieval.embed_user_prompt
 
     def retrieve_semantic_context(self, tracks):
         """
@@ -35,9 +31,8 @@ class RAGSemanticRefiner:
             if verbose:
                 print(f"\nRetrieving semantic context for: {artist} - {track_name}")
 
-            song_text = get_or_create_song_embedding(
-                artist, track_name, self.collection
-            )
+            song_text = self.SemanticRetrieval.get_or_create_song_embedding(
+                artist, track_name)
 
             if song_text:
                 # print(f"Semantic context retrieved for '{track_name}'.")
@@ -197,7 +192,7 @@ class RAGSemanticRefiner:
 
         # Step 1 Ensure embeddings exist
         for artist, track_name in zip(tracks["artists"], tracks["track_name"]):
-            get_or_create_song_embedding(artist, track_name, self.collection)
+            self.SemanticRetrieval.get_or_create_song_embedding(artist, track_name)
 
         # Step 2 Embed user prompt explicitly
         user_embedding = self.embed_user_prompt(user_prompt)
