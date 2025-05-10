@@ -34,7 +34,9 @@ class Orchestrator:
         self.create_recommendation_table = create_recommendation_table
         self.summarize_results = summarize_results
         self.prompt_to_audio_params = prompt_to_audio_params
-        self.semantic_refiner = RAGSemanticRefiner(llm_executor=self.llm_executor, open_ai_key=open_ai_key)
+        self.semantic_refiner = RAGSemanticRefiner(
+            llm_executor=self.llm_executor, open_ai_key=open_ai_key
+        )
         self.memory = None
         self.existing_summary = None
 
@@ -210,7 +212,7 @@ if __name__ == "__main__":
 
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
 
-    #user_prompt = "please create a playlist of Canadian songs"
+    # user_prompt = "please create a playlist of Canadian songs"
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
     user_prompt = "music for romantic date"

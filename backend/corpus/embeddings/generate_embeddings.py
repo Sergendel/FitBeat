@@ -47,8 +47,7 @@ for idx, row in metadata_df.iterrows():
 
         # Generate embedding vector explicitly using OpenAI's embeddings API
         response = client.embeddings.create(
-            input=song_context,
-            model="text-embedding-ada-002"
+            input=song_context, model="text-embedding-ada-002"
         )
 
         embedding = response.data[0].embedding

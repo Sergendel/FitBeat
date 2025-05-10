@@ -1,14 +1,13 @@
 import pandas as pd
 
 from backend import config
-from backend.core.llm_executor import LLMExecutor
 from backend.core.output_parser import OutputParser
 from backend.core.prompt_engineer import PromptEngineer
 from backend.corpus.embeddings.semantic_retrieval import SemanticRetrieval
 
 
 class RAGSemanticRefiner:
-    def __init__(self,llm_executor = None, open_ai_key=None):
+    def __init__(self, llm_executor=None, open_ai_key=None):
         self.llm_executor = llm_executor
         self.parser = OutputParser()
         self.prompt_engineer = PromptEngineer()
@@ -32,7 +31,8 @@ class RAGSemanticRefiner:
                 print(f"\nRetrieving semantic context for: {artist} - {track_name}")
 
             song_text = self.SemanticRetrieval.get_or_create_song_embedding(
-                artist, track_name)
+                artist, track_name
+            )
 
             if song_text:
                 # print(f"Semantic context retrieved for '{track_name}'.")

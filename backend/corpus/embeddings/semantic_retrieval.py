@@ -32,7 +32,9 @@ class SemanticRetrieval:
             )
         else:
             collection_name = "genius_embeddings"
-            chroma_client = chromadb.PersistentClient(path=str(config.EMBEDDINGS_DB_PATH))
+            chroma_client = chromadb.PersistentClient(
+                path=str(config.EMBEDDINGS_DB_PATH)
+            )
             try:
                 collection = chroma_client.get_collection(name=collection_name)
             except NotFoundError:
@@ -44,14 +46,15 @@ class SemanticRetrieval:
 
     def get_openai_embedding(self, text: str):
         response = self.client.embeddings.create(
-            input=text,
-            model="text-embedding-ada-002"
+            input=text, model="text-embedding-ada-002"
         )
         return response.data[0].embedding
 
     def find_semantically_similar_songs(self, query: str, top_k: int = 5):
         query_embedding = self.get_openai_embedding(query)
-        results = self.collection.query(query_embeddings=[query_embedding], n_results=top_k)
+        results = self.collection.query(
+            query_embeddings=[query_embedding], n_results=top_k
+        )
         return results["documents"][0], results["metadatas"][0]
 
     def embed_user_prompt(self, user_prompt: str):
@@ -95,11 +98,15 @@ if __name__ == "__main__":
     semantic_retrieval = SemanticRetrieval(openai_api_key=os.getenv("OPENAI_API_KEY"))
 
     query = "calm instrumental piano music"
-    documents, metadata = semantic_retrieval.find_semantically_similar_songs(query, top_k=5)
+    documents, metadata = semantic_retrieval.find_semantically_similar_songs(
+        query, top_k=5
+    )
 
     print("Retrieved Top Songs:")
     for doc, meta in zip(documents, metadata):
-        print(f"- {meta['artists']} - {meta['track_name']} ({meta.get('genre', 'N/A')})")
+        print(
+            f"- {meta['artists']} - {meta['track_name']} ({meta.get('genre', 'N/A')})"
+        )
 
     artists = "Coldplay"
     track_name = "Adventure of a Lifetime"
