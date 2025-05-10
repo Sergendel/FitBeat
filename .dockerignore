@@ -1,0 +1,8 @@
+.aws-sam/
+backend/deployment/aws/.aws-sam/  # <-- explicitly added full path
+backend/resources/
+frontend/
+.git/
+.gitignore
+*.pyc
+__pycache__/
