@@ -45,6 +45,12 @@ class SemanticRetrieval:
         elif os.getenv("GITHUB_ACTIONS") == "true":
             chroma_client = chromadb.Client()
             collection_name = "genius_embeddings_ci"
+            # explicitly create collection in memory for CI
+            collection = chroma_client.get_or_create_collection(
+                name=collection_name,
+                metadata={"hnsw:space": "cosine", "hnsw:num_threads": 1},
+            )
+            return collection  # explicitly return immediately after creation
 
         else:
             chroma_client = chromadb.PersistentClient(
