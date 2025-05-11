@@ -24,7 +24,7 @@ load_dotenv()
 
 
 class Orchestrator:
-    def __init__(self, open_ai_key=None, genius_api_key=None,clear_memory=None):
+    def __init__(self, open_ai_key=None, genius_api_key=None, clear_memory=None):
         self.clear_memory = clear_memory
         self.llm_executor = LLMExecutor(open_ai_key=open_ai_key)
         self.prompt_engineer = PromptEngineer()
@@ -36,8 +36,9 @@ class Orchestrator:
         self.summarize_results = summarize_results
         self.prompt_to_audio_params = prompt_to_audio_params
         self.semantic_refiner = RAGSemanticRefiner(
-            llm_executor=self.llm_executor, open_ai_key=open_ai_key,
-            genius_api_key = genius_api_key
+            llm_executor=self.llm_executor,
+            open_ai_key=open_ai_key,
+            genius_api_key=genius_api_key,
         )
         self.memory = None
         self.existing_summary = None
@@ -210,7 +211,7 @@ class Orchestrator:
 
 # Example Usage
 if __name__ == "__main__":
-    orchestrator = Orchestrator(clear_memory = True)
+    orchestrator = Orchestrator(clear_memory=True)
 
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
 

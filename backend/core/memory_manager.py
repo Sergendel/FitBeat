@@ -22,7 +22,7 @@ class MemoryManager:
 
         self.MEMORY_FILE_PATH = config.MEMORY_FILE_PATH
 
-    def initialize_memory(self, clear_memory=None ):
+    def initialize_memory(self, clear_memory=None):
         self.existing_summary = self.load_memory_from_file()
 
         if self.existing_summary:
@@ -105,5 +105,3 @@ class MemoryManager:
                     .lower()
                 )
                 return response in ("y", "yes")
-
-
