@@ -1,6 +1,7 @@
 import json
 import os
 import warnings
+from pathlib import Path
 
 from dotenv import load_dotenv
 from langchain.memory import ConversationSummaryMemory
@@ -20,7 +21,12 @@ class MemoryManager:
         self.memory = None
         self.existing_summary = None
 
-        self.MEMORY_FILE_PATH = config.MEMORY_FILE_PATH
+        if os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+            # Explicitly use Lambda's ephemeral storage path
+            self.MEMORY_FILE_PATH = Path("/tmp/conversation_memory.json")
+        else:
+            # Explicitly use your local development path
+            self.MEMORY_FILE_PATH = config.MEMORY_FILE_PATH
 
     def initialize_memory(self, clear_memory=None):
         self.existing_summary = self.load_memory_from_file()

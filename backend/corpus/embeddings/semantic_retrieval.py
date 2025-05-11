@@ -1,5 +1,7 @@
 import os
+import shutil
 import sys
+import time
 from pathlib import Path
 
 import chromadb
@@ -17,6 +19,10 @@ load_dotenv()
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 
+def running_on_lambda():
+    return "AWS_LAMBDA_FUNCTION_NAME" in os.environ
+
+
 class SemanticRetrieval:
     def __init__(self, open_ai_key=None, genius_api_key=None):
         self.client = OpenAI(api_key=open_ai_key)
@@ -24,25 +30,34 @@ class SemanticRetrieval:
         self.SongContextGenerator = SongContextGenerator(genius_api_key=genius_api_key)
 
     def set_collection(self):
-        if os.getenv("GITHUB_ACTIONS") == "true":
+        collection_name = "genius_embeddings"
+
+        if running_on_lambda():
+            lambda_db_source = "/var/task/backend/corpus/embeddings/genius_corpus_db"
+            lambda_db_destination = "/tmp/genius_corpus_db"
+
+            # Copy DB to /tmp if it doesn't exist yet in this Lambda invocation
+            if not os.path.exists(lambda_db_destination):
+                shutil.copytree(lambda_db_source, lambda_db_destination)
+
+            chroma_client = chromadb.PersistentClient(path=lambda_db_destination)
+
+        elif os.getenv("GITHUB_ACTIONS") == "true":
             chroma_client = chromadb.Client()
             collection_name = "genius_embeddings_ci"
-            collection = chroma_client.get_or_create_collection(
-                name=collection_name,
-                metadata={"hnsw:space": "cosine", "hnsw:num_threads": 1},
-            )
+
         else:
-            collection_name = "genius_embeddings"
             chroma_client = chromadb.PersistentClient(
                 path=str(config.EMBEDDINGS_DB_PATH)
             )
-            try:
-                collection = chroma_client.get_collection(name=collection_name)
-            except NotFoundError:
-                raise RuntimeError(
-                    f"Collection '{collection_name}' does not exist. "
-                    f"Ensure it is created during initialization."
-                )
+
+        try:
+            collection = chroma_client.get_collection(name=collection_name)
+        except NotFoundError:
+            raise RuntimeError(
+                f"Collection '{collection_name}' does not exist. "
+                "Ensure it is created during initialization."
+            )
         return collection
 
     def get_openai_embedding(self, text: str):
@@ -85,6 +100,8 @@ class SemanticRetrieval:
                 documents=[song_context],
                 metadatas=[{"artists": artist, "track_name": track_name}],
             )
+            delay_sec = 2
+            time.sleep(delay_sec)
             if verbose:
                 print(f"Embedding added to corpus for: '{artist} - {track_name}'.")
             return song_context

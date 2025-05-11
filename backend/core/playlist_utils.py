@@ -68,9 +68,6 @@ def create_recommendation_table(tracks, folder_name):
 
     Returns structured JSON for API/frontend,and saves as CSV file clearly.
     """
-    # Set save path:
-    save_path = os.path.join(config.PLAYLISTS_DIR, folder_name)
-    os.makedirs(save_path, exist_ok=True)
 
     # Construct YouTube links:
     tracks = tracks.copy()
@@ -107,20 +104,23 @@ def create_recommendation_table(tracks, folder_name):
             for _, row in table_df.iterrows()
         ]
     }
+    if not os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        # Set save path:
+        save_path = os.path.join(config.PLAYLISTS_DIR, folder_name)
+        os.makedirs(save_path, exist_ok=True)
+        # Save structured JSON:
+        json_file = os.path.join(save_path, "playlist.json")
+        with open(json_file, "w", encoding="utf-8") as f:
+            json.dump(playlist_json, f, indent=4)
+        relative_json_file = os.path.relpath(json_file, config.PROJECT_ROOT)
+        print(f"\nJSON playlist saved to '{relative_json_file}'")
 
-    # Save structured JSON:
-    json_file = os.path.join(save_path, "playlist.json")
-    with open(json_file, "w", encoding="utf-8") as f:
-        json.dump(playlist_json, f, indent=4)
-    relative_json_file = os.path.relpath(json_file, config.PROJECT_ROOT)
-    print(f"\nJSON playlist saved to '{relative_json_file}'")
+        # Save as CSV:
+        csv_file = os.path.join(save_path, "playlist.csv")
+        table_df.to_csv(csv_file, index=False, encoding="utf-8")
+        relative_csv_file = os.path.relpath(csv_file, config.PROJECT_ROOT)
 
-    # Save as CSV:
-    csv_file = os.path.join(save_path, "playlist.csv")
-    table_df.to_csv(csv_file, index=False, encoding="utf-8")
-    relative_csv_file = os.path.relpath(csv_file, config.PROJECT_ROOT)
-
-    print(f"CSV playlist saved to '{relative_csv_file}'\n")
+        print(f"CSV playlist saved to '{relative_csv_file}'\n")
 
     # Return JSON for API response (Future task):
     return playlist_json

@@ -32,7 +32,7 @@ else:
     collection_name = "genius_embeddings"
 
     collection = chroma_client.get_or_create_collection(
-        name=collection_name, metadata={"hnsw:space": "cosine"}
+        name=collection_name, metadata={"hnsw:space": "cosine", "hnsw:num_threads": 1}
     )
 
 
