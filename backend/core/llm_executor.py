@@ -14,12 +14,12 @@ class LLMExecutor:
     def __init__(self, model_name="gpt-3.5-turbo", temperature=0.2, open_ai_key=None):
         load_dotenv()
         if open_ai_key is None:
-            api_key = os.getenv("OPENAI_API_KEY")
+            open_ai_key = os.getenv("OPENAI_API_KEY")
 
-        if api_key is None:
+        if open_ai_key is None:
             raise ValueError("OPENAI_API_KEY is not set in your .env file")
 
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(api_key=open_ai_key)
         self.model_name = model_name
         self.temperature = temperature
 

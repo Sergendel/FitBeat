@@ -37,16 +37,17 @@ def lambda_handler(event, context):
     # Retrieve secrets (API keys)
     secrets = get_secrets()
     openai_api_key = secrets["OPENAI_API_KEY"]
-    # genius_api_key = secrets["GENIUS_API_KEY"]
+    genius_api_key = secrets["GENIUS_API_KEY"]
     # print(f"keys = {openai_api_key} and {genius_api_key}")
 
     if http_method == "POST" and path == "/recommend":
         # Handle POST /recommend requests
         body = json.loads(event["body"])
         description = body.get("description", "")
+        clear_memory = body.get("clear_memory", False)
         # print(f"description = {description}")
 
-        orchestrator = Orchestrator(openai_api_key)
+        orchestrator = Orchestrator(openai_api_key, genius_api_key, clear_memory)
         playlist = orchestrator.run_planning_agent(description, num_tracks=20)
 
         return {

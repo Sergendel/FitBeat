@@ -22,7 +22,7 @@ class MemoryManager:
 
         self.MEMORY_FILE_PATH = config.MEMORY_FILE_PATH
 
-    def initialize_memory(self):
+    def initialize_memory(self, clear_memory=None ):
         self.existing_summary = self.load_memory_from_file()
 
         if self.existing_summary:
@@ -32,7 +32,7 @@ class MemoryManager:
                 llm=self.llm, buffer=self.existing_summary
             )
 
-            if self.confirm_clear_memory():
+            if self.confirm_clear_memory(clear_memory=clear_memory):
                 self.memory.clear()
                 print("\nUnrelated task—memory cleared.")
             else:
@@ -82,7 +82,7 @@ class MemoryManager:
             return None
 
     @staticmethod
-    def confirm_clear_memory():
+    def confirm_clear_memory(clear_memory=None):
         """
         Prompts user to confirm if they start a new unrelated task.
         Returns True if memory should be cleared.
@@ -93,12 +93,17 @@ class MemoryManager:
             )
             return True  # explicitly confirm "yes" in GitHub Actions
         else:
-            response = (
-                input(
-                    "\n***** Do you want to clear previous memory and start a "
-                    "new unrelated task? (y/n): "
+            if clear_memory is not None:
+                return clear_memory
+            else:
+                response = (
+                    input(
+                        "\n***** Do you want to clear previous memory and start a "
+                        "new unrelated task? (y/n): "
+                    )
+                    .strip()
+                    .lower()
                 )
-                .strip()
-                .lower()
-            )
-            return response in ("y", "yes")
+                return response in ("y", "yes")
+
+

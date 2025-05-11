@@ -1,0 +1,5 @@
+{
+  "httpMethod": "POST",
+  "path": "/recommend",
+  "body": "{\"description\": \"upbeat music for intense gym training\", \"clear_memory\": true}"
+}

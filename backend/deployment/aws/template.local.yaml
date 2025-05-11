@@ -4,7 +4,7 @@ Description: FitBeat Lambda with two API endpoints.
 
 Globals:                                # Default settings for all Lambda functions.
   Function:
-    Timeout: 60
+    Timeout: 180
     MemorySize: 1024
 
 Resources:   #Definitions of AWS Lambda functions and events (API Gateway endpoints).

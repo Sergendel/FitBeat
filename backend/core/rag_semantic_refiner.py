@@ -7,11 +7,14 @@ from backend.corpus.embeddings.semantic_retrieval import SemanticRetrieval
 
 
 class RAGSemanticRefiner:
-    def __init__(self, llm_executor=None, open_ai_key=None):
+    def __init__(self, llm_executor=None, open_ai_key=None, genius_api_key=None):
         self.llm_executor = llm_executor
         self.parser = OutputParser()
         self.prompt_engineer = PromptEngineer()
-        self.SemanticRetrieval = SemanticRetrieval(open_ai_key=open_ai_key)
+        self.SemanticRetrieval = SemanticRetrieval(
+            open_ai_key=open_ai_key, genius_api_key=genius_api_key
+        )
+
         # Set ChromaDB collection
         self.collection = self.SemanticRetrieval.set_collection()
 

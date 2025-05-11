@@ -24,7 +24,8 @@ load_dotenv()
 
 
 class Orchestrator:
-    def __init__(self, open_ai_key=None):
+    def __init__(self, open_ai_key=None, genius_api_key=None,clear_memory=None):
+        self.clear_memory = clear_memory
         self.llm_executor = LLMExecutor(open_ai_key=open_ai_key)
         self.prompt_engineer = PromptEngineer()
         self.parser = OutputParser()
@@ -35,7 +36,8 @@ class Orchestrator:
         self.summarize_results = summarize_results
         self.prompt_to_audio_params = prompt_to_audio_params
         self.semantic_refiner = RAGSemanticRefiner(
-            llm_executor=self.llm_executor, open_ai_key=open_ai_key
+            llm_executor=self.llm_executor, open_ai_key=open_ai_key,
+            genius_api_key = genius_api_key
         )
         self.memory = None
         self.existing_summary = None
@@ -61,7 +63,7 @@ class Orchestrator:
             "and constructing the combined prompt:"
         )
         # Initialize memory
-        self.memory_manager.initialize_memory()
+        self.memory_manager.initialize_memory(clear_memory=self.clear_memory)
 
         # Create refined prompt using memory context
         prompt_with_memory = self.memory_manager.create_prompt_with_memory(user_prompt)
@@ -208,14 +210,14 @@ class Orchestrator:
 
 # Example Usage
 if __name__ == "__main__":
-    orchestrator = Orchestrator()
+    orchestrator = Orchestrator(clear_memory = True)
 
     # ------------------  NO MEMORY SCENARIOS  ---------------------------
 
     # user_prompt = "please create a playlist of Canadian songs"
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
-    user_prompt = "music for romantic date"
+    user_prompt = "music for nightmare movie"
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
     # user_prompt = (

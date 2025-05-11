@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from backend import config
-from backend.core.song_utils import generate_song_context
+from backend.core.song_utils import SongContextGenerator
 
 # Load environment
 load_dotenv()
@@ -18,9 +18,10 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 
 class SemanticRetrieval:
-    def __init__(self, open_ai_key=None):
+    def __init__(self, open_ai_key=None, genius_api_key=None):
         self.client = OpenAI(api_key=open_ai_key)
         self.collection = self.set_collection()
+        self.SongContextGenerator = SongContextGenerator(genius_api_key=genius_api_key)
 
     def set_collection(self):
         if os.getenv("GITHUB_ACTIONS") == "true":
@@ -73,7 +74,9 @@ class SemanticRetrieval:
         if verbose:
             print("Song not found. Fetching dynamically from Genius API...")
 
-        song_context = generate_song_context(artist, track_name)
+        song_context = self.SongContextGenerator.generate_song_context(
+            artist, track_name
+        )
         if song_context:
             embedding = self.get_openai_embedding(song_context)
             self.collection.add(
@@ -95,7 +98,10 @@ class SemanticRetrieval:
 
 
 if __name__ == "__main__":
-    semantic_retrieval = SemanticRetrieval(openai_api_key=os.getenv("OPENAI_API_KEY"))
+    semantic_retrieval = SemanticRetrieval(
+        open_ai_key=os.getenv("OPENAI_API_KEY"),
+        genius_api_key=os.getenv("GENIUS_API_KEY"),
+    )
 
     query = "calm instrumental piano music"
     documents, metadata = semantic_retrieval.find_semantically_similar_songs(
