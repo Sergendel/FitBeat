@@ -3,9 +3,9 @@ import os
 
 import pandas as pd
 from yt_dlp import YoutubeDL
-
+from googleapiclient.discovery import build
 from backend import config
-
+from dotenv import load_dotenv
 
 def summarize_results(tracks: pd.DataFrame) -> None:
     """
@@ -34,7 +34,7 @@ def summarize_results(tracks: pd.DataFrame) -> None:
         )
 
 
-def youtube_search_top_result(query):
+def youtube_search_top_result_old(query):
     """
     Returns top YouTube video URL, suppressing ffmpeg warnings.
     """
@@ -57,6 +57,30 @@ def youtube_search_top_result(query):
         info_dict = ydl.extract_info(query, download=False)
         video_url = info_dict["entries"][0]["webpage_url"]
         return video_url
+
+
+def youtube_search_top_result(query):
+    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+
+    search_response = youtube.search().list(
+        q=query,
+        part='id,snippet',
+        maxResults=1,
+        type='video'
+    ).execute()
+
+    items = search_response.get('items', [])
+    if not items:
+        return None
+
+    video_id = items[0]['id']['videoId']
+    youtube_link = f"https://www.youtube.com/watch?v={video_id}"
+
+    return youtube_link
+
+
+
 
 
 def create_recommendation_table(tracks, folder_name):
