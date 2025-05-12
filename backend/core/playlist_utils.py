@@ -2,10 +2,11 @@ import json
 import os
 
 import pandas as pd
-from yt_dlp import YoutubeDL
 from googleapiclient.discovery import build
+from yt_dlp import YoutubeDL
+
 from backend import config
-from dotenv import load_dotenv
+
 
 def summarize_results(tracks: pd.DataFrame) -> None:
     """
@@ -61,26 +62,22 @@ def youtube_search_top_result_old(query):
 
 def youtube_search_top_result(query):
     YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
-    search_response = youtube.search().list(
-        q=query,
-        part='id,snippet',
-        maxResults=1,
-        type='video'
-    ).execute()
+    search_response = (
+        youtube.search()
+        .list(q=query, part="id,snippet", maxResults=1, type="video")
+        .execute()
+    )
 
-    items = search_response.get('items', [])
+    items = search_response.get("items", [])
     if not items:
         return None
 
-    video_id = items[0]['id']['videoId']
+    video_id = items[0]["id"]["videoId"]
     youtube_link = f"https://www.youtube.com/watch?v={video_id}"
 
     return youtube_link
-
-
-
 
 
 def create_recommendation_table(tracks, folder_name):
