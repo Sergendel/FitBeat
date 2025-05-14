@@ -35,7 +35,7 @@ genius_corpus/
 *.md
 
 # included
-!backend/requirements.txt
+!backend/deployment/aws/lambda_single/requirements.txt
 !backend/.env.example
 !README.md
 
