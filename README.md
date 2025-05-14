@@ -11,6 +11,18 @@
 FitBeat is an LLM-powered Music Recommendation Agent that transforms emotional or situational descriptions
 (e.g., "music for intense gym training" or "playlist for a child's birthday party") into personalized playlists.
 
+## 🛠️ Technology Stack
+
+* **Languages & Libraries:** Python,Langchain, ChromaDB,  Sentence-Transformers, OpenAI API, Genius API, 
+* **Machine Learning Techniques:** Retrieval-Augmented Generation (RAG), Embedding-based Semantic Ranking
+* **Cloud Infrastructure:** AWS Lambda, AWS API Gateway, AWS S3, AWS Secrets Manager, AWS CloudWatch
+* **Deployment Tools:** AWS Serverless Application Model (SAM), Docker, GitHub Actions (CI/CD)
+* **Testing & Quality:** Pytest, Flake8, Black, Isort
+
+---
+
+
+
 ## 📌 How It Works (Quick Overview)
 
 ### 1. Initial Filtering (Numeric Analysis)
@@ -118,23 +130,6 @@ FitBeat features persistent memory, enabling context preservation across multipl
   - Answering **"y"** clears memory and starts fresh.
   - Answering **"n"** retains existing summarized memory.
 
-## 🧪 Testing and CI/CD
-
-FitBeat includes basic unit tests to ensure robustness and correctness of core functionalities. Tests are implemented using **`pytest`**.
-
-### 📌 Running Tests Locally
-
-Ensure dependencies are installed:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run tests with the command:
-
-```bash
-pytest tests/
-```
 
 ## 📌 Continuous Integration (CI)
 
@@ -229,8 +224,69 @@ Demonstrates memory across sequential interactions:
 
 These scenarios clearly show FitBeat's flexible, context-aware decision-making and dynamic tool selection capability.
 
+## 📦 Deployment and Usage (Single-Lambda AWS Deployment)
 
-## 🚀 **How to Run**
+### ✅ Deployment Overview
+
+FitBeat is deployed using AWS SAM, packaged as a Docker container hosted on AWS Lambda, accessible via AWS API Gateway.
+
+**Live API endpoints:**
+
+* **Status Check (`GET`):**
+
+  ```
+  https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/status
+  ```
+* **Music Recommendation (`POST`):**
+
+  ```
+  https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend
+  ```
+
+### ✅ Testing the Deployed API
+
+**Using Curl:**
+
+Status endpoint:
+
+```bash
+curl https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/status
+```
+
+Recommend endpoint:
+
+```bash
+curl -X POST https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend \
+     -H "Content-Type: application/json" \
+     -d '{"description": "upbeat music for intense gym training", "clear_memory": true}'
+```
+
+**Using Postman:**
+
+1. Open Postman and create a new HTTP Request.
+2. Set method to `POST` and URL to:
+
+   ```
+   https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend
+   ```
+3. In "Headers", add:
+
+   ```
+   Key: Content-Type
+   Value: application/json
+   ```
+4. Under "Body", select "raw" and "JSON", and paste:
+
+   ```json
+   {
+     "description": "upbeat music for intense gym training",
+     "clear_memory": true
+   }
+   ```
+5. Click "Send" and view your recommended playlist response.
+
+
+## 🚀 **How to Run Locally**
 
 ### ✅ **1. Clone the Repository**
 ```bash
