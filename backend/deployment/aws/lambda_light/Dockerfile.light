@@ -1,0 +1,23 @@
+# Stage 1: Build stage optimizing minimal dependencies
+FROM public.ecr.aws/lambda/python:3.11 AS build-image
+
+# Prepare minimal Python dependencies
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt -t ./python \
+    && find ./python -name "*.pyc" -delete \
+    && find ./python -type d -name "__pycache__" -exec rm -rf {} +
+
+# Stage 2: Create final runtime Lambda image
+FROM public.ecr.aws/lambda/python:3.11
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Copy Python dependencies
+COPY --from=build-image /build/python ${LAMBDA_TASK_ROOT}
+
+# Copy Lightweight Lambda code only
+COPY app.py .
+
+# Explicit Lambda entry point definition
+CMD ["app.lambda_handler"]

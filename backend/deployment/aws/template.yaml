@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FitBeat Asynchronous Architecture (2 Lambdas + S3 + API Gateway)
+
+Globals:
+  Function:
+    MemorySize: 1024
+    Timeout: 180  # Default, overridden per function
+
+Resources:
+
+  # Lightweight Lambda (Lambda #1)
+  LightweightLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: lightweight-lambda:latest
+      Timeout: 15
+      MemorySize: 512
+      Role: !GetAtt LightweightLambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          HEAVYWEIGHT_FUNCTION_NAME: !Ref HeavyweightLambda
+          S3_BUCKET_NAME: !Ref PlaylistBucket
+          OTEL_SDK_DISABLED: "true"
+      Events:
+        RecommendApi:
+          Type: Api
+          Properties:
+            Path: /recommend
+            Method: post
+
+        StatusApi:
+          Type: Api
+          Properties:
+            Path: /status/{job_id}
+            Method: get
+
+  # Heavyweight Lambda (Lambda #2)
+  HeavyweightLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: heavyweight-lambda:latest
+      Timeout: 900
+      MemorySize: 2048
+      Role: !GetAtt HeavyweightLambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref PlaylistBucket
+          SECRET_NAME: fitbeat
+          OTEL_SDK_DISABLED: "true"
+
+  # S3 Bucket for Playlist Storage
+  PlaylistBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: fitbeat-playlists
+
+  # IAM Role for Lightweight Lambda defined
+  LightweightLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaInvokePermission
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt HeavyweightLambda.Arn
+
+        - PolicyName: CloudWatchLogsPermission
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "arn:aws:logs:*:*:*"
+
+        - PolicyName: S3ReadAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${PlaylistBucket}/*"
+
+  # IAM Role for Heavyweight Lambda defined
+  HeavyweightLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: arn:aws:secretsmanager:us-east-1:280034924053:secret:fitbeat-fLwpdP
+
+        - PolicyName: S3WriteAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${PlaylistBucket}/*"
+
+        - PolicyName: CloudWatchLogsPermission
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "arn:aws:logs:*:*:*"
+
+Outputs:
+  RecommendApi:
+    Description: "API Gateway endpoint for POST /recommend"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/recommend"
+
+  StatusApi:
+    Description: "API Gateway endpoint for GET /status/{job_id}"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status/{job_id}"

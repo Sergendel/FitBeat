@@ -1,0 +1,39 @@
+# Stage 1: Build stage optimizing dependencies and upgrading SQLite
+FROM public.ecr.aws/lambda/python:3.11 AS build-image
+
+RUN yum update -y \
+    && yum install -y gcc make wget tar gzip
+
+# Compile and install SQLite (3.43.2)
+RUN wget https://sqlite.org/2023/sqlite-autoconf-3430200.tar.gz \
+    && tar xvf sqlite-autoconf-3430200.tar.gz \
+    && cd sqlite-autoconf-3430200 \
+    && ./configure --prefix=/usr \
+    && make \
+    && make install
+
+# Prepare Python dependencies
+WORKDIR /build
+COPY backend/deployment/aws/lambda_heavy/requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt -t ./python \
+    && find ./python -name "*.pyc" -delete \
+    && find ./python -type d -name "__pycache__" -exec rm -rf {} + \
+    && rm -rf python/nvidia python/cusparselt python/triton
+
+# Stage 2: Final runtime Lambda image explicitly
+FROM public.ecr.aws/lambda/python:3.11
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Overwrite Lambda's default SQLite library
+COPY --from=build-image /usr/lib/libsqlite3.so.0 /var/lang/lib/libsqlite3.so.0
+COPY --from=build-image /usr/bin/sqlite3 /usr/bin/sqlite3
+
+# Copy Python dependencies
+COPY --from=build-image /build/python ${LAMBDA_TASK_ROOT}
+
+# Copy the entire backend directory (Simple, clear, and maintainable)
+COPY backend ./backend
+
+# Explicit Lambda handler definition
+CMD ["backend.deployment.aws.lambda_heavy.app.lambda_handler"]

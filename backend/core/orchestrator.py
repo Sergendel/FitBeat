@@ -8,7 +8,7 @@ from backend.core.filtering_utils import filter_tracks_by_audio_params
 from backend.core.llm_executor import LLMExecutor
 from backend.core.memory_manager import MemoryManager
 from backend.core.output_parser import OutputParser
-from backend.core.playlist_utils import create_recommendation_table, summarize_results
+from backend.core.playlist_utils import YouTubeSearcher
 from backend.core.prompt_engineer import PromptEngineer
 from backend.core.rag_semantic_refiner import RAGSemanticRefiner
 from backend.core.track_downloader import TrackDownloader
@@ -24,7 +24,13 @@ load_dotenv()
 
 
 class Orchestrator:
-    def __init__(self, open_ai_key=None, genius_api_key=None, clear_memory=None):
+    def __init__(
+        self,
+        open_ai_key=None,
+        genius_api_key=None,
+        youtube_api_key=None,
+        clear_memory=None,
+    ):
         self.clear_memory = clear_memory
         self.llm_executor = LLMExecutor(open_ai_key=open_ai_key)
         self.prompt_engineer = PromptEngineer()
@@ -32,8 +38,6 @@ class Orchestrator:
         self.downloader = TrackDownloader()
         self.dataset = ExtractFile().load_data()
         self.filter_tracks_by_audio_params = filter_tracks_by_audio_params
-        self.create_recommendation_table = create_recommendation_table
-        self.summarize_results = summarize_results
         self.prompt_to_audio_params = prompt_to_audio_params
         self.semantic_refiner = RAGSemanticRefiner(
             llm_executor=self.llm_executor,
@@ -45,6 +49,13 @@ class Orchestrator:
 
         # memory
         self.memory_manager = MemoryManager()
+
+        # YouTube searcher
+        self.YouTubeSearcher = YouTubeSearcher(youtube_api_key=youtube_api_key)
+        self.create_recommendation_table = (
+            self.YouTubeSearcher.create_recommendation_table
+        )
+        self.summarize_results = self.YouTubeSearcher.summarize_results
 
         # Action mapping
         self.action_mapping = {
