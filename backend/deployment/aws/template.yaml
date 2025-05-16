@@ -85,11 +85,17 @@ Resources:
                   - logs:PutLogEvents
                 Resource: "arn:aws:logs:*:*:*"
 
-        - PolicyName: S3ReadAccess
+        - PolicyName: S3ListAndReadAccess
           PolicyDocument:
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: s3:GetObject
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${PlaylistBucket}"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
                 Resource: !Sub "arn:aws:s3:::${PlaylistBucket}/*"
 
   # IAM Role for Heavyweight Lambda defined

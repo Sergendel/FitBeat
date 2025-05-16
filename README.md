@@ -20,6 +20,128 @@ FitBeat is an LLM-powered Music Recommendation Agent that transforms emotional o
 * **Testing & Quality:** Pytest, Flake8, Black, Isort
 
 ---
+## 📦 Deployment and Usage (Two-Lambda Asynchronous AWS Deployment)
+
+### ✅ Deployment Overview
+
+FitBeat uses an asynchronous, two-Lambda AWS deployment architecture with AWS SAM. The setup includes:
+
+* **Lambda #1 (Lightweight Lambda)**: Receives initial API requests, generates Job IDs, and triggers the Heavyweight Lambda asynchronously.
+* **Lambda #2 (Heavyweight Lambda)**: Handles intensive tasks, including playlist generation and YouTube link retrieval, and stores the results in AWS S3.
+* **AWS API Gateway**: Provides explicit, secure endpoints for interacting with Lambdas.
+* **AWS S3**: Stores generated playlists.
+
+### ✅ Architecture Flowchart
+
+```
+Frontend          Lambda #1 (Light)          Lambda #2 (Heavy)          S3 (Storage)
+  │                      │                           │                       │
+  ├───(HTTP POST)───────>│                           │                       │
+  │                      ├── Generate Job ID         │                       │
+  │                      ├── Async Invoke ──────────>│                       │
+  │                      │                           ├─── Perform Heavy Task │
+  │<─────(Job ID)────────┤                           │                       │
+  │                      │                           ├─── Save Result ──────>│
+  │                      │                           │                       │
+(Polling starts)         │                           │                       │
+  │                      │                           │                       │
+  ├─(HTTP GET: status)──>│                           │                       │
+  │                      ├───(Check S3 status)──────────────────────────────>│
+  │                      │<───("processing"/no file)─────────────────────────┤
+  │<─("processing")──────┤                           │                       │
+  │                      │                           │                       │
+  ├─(HTTP GET: status)──>│                           │                       │
+  │                      ├───(Check S3 status)──────────────────────────────>│
+  │                      │<───("completed"/file found + data)────────────────┤
+  │<─("completed"+data)──┤                           │                       │
+  │                      │                           │                       │
+  ├─ Display Results ───>│                           │                       │
+```
+
+### ✅ Deployed API Endpoints
+
+* **Request Music Recommendation (`POST`)**:
+
+```bash
+https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend
+```
+
+* **Check Status (`GET`)**:
+
+```bash
+https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/{job_id}
+```
+
+### ✅ Testing the Deployed API
+
+**Using Curl:**
+
+Request recommendation (get job ID):
+
+```bash
+curl -X POST https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend \
+     -H "Content-Type: application/json" \
+     -d '{"description": "upbeat music for intense gym training", "clear_memory": true}'
+```
+
+Response example (Job ID):
+
+```json
+{"job_id": "your-job-id"}
+```
+
+Poll status using Job ID:
+
+```bash
+curl https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/your-job-id
+```
+
+Initially expect:
+
+```json
+{"status": "processing"}
+```
+
+Once processing completes:
+
+```json
+{
+  "status": "completed",
+  "playlist": [
+    {"artist": "Artist Name", "track": "Track Name", "youtube_link": "YouTube URL"},
+    ...
+  ]
+}
+```
+
+**Using Postman:**
+
+1. Create a new POST request in Postman:
+
+   * URL: `https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend`
+   * Headers:
+
+     ```
+     Content-Type: application/json
+     ```
+   * Body (raw JSON):
+
+     ```json
+     {
+       "description": "upbeat music for intense gym training",
+       "clear_memory": true
+     }
+     ```
+   * Click "Send" and note your returned `job_id`.
+
+2. Poll status in Postman:
+
+   * Create a new GET request:
+
+     ```
+     https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/{your-job-id}
+     ```
+   * Send request until status is `completed` and playlist appears.
 
 
 
@@ -221,69 +343,6 @@ Demonstrates memory across sequential interactions:
 - Agent autonomously decides which tools are required given the additional context.
 
 ---
-
-These scenarios clearly show FitBeat's flexible, context-aware decision-making and dynamic tool selection capability.
-
-## 📦 Deployment and Usage (Single-Lambda AWS Deployment)
-
-### ✅ Deployment Overview
-
-FitBeat is deployed using AWS SAM, packaged as a Docker container hosted on AWS Lambda, accessible via AWS API Gateway.
-
-**Live API endpoints:**
-
-* **Status Check (`GET`):**
-
-  ```
-  https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/status
-  ```
-* **Music Recommendation (`POST`):**
-
-  ```
-  https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend
-  ```
-
-### ✅ Testing the Deployed API
-
-**Using Curl:**
-
-Status endpoint:
-
-```bash
-curl https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/status
-```
-
-Recommend endpoint:
-
-```bash
-curl -X POST https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend \
-     -H "Content-Type: application/json" \
-     -d '{"description": "upbeat music for intense gym training", "clear_memory": true}'
-```
-
-**Using Postman:**
-
-1. Open Postman and create a new HTTP Request.
-2. Set method to `POST` and URL to:
-
-   ```
-   https://cnrf43xfm8.execute-api.us-east-1.amazonaws.com/Prod/recommend
-   ```
-3. In "Headers", add:
-
-   ```
-   Key: Content-Type
-   Value: application/json
-   ```
-4. Under "Body", select "raw" and "JSON", and paste:
-
-   ```json
-   {
-     "description": "upbeat music for intense gym training",
-     "clear_memory": true
-   }
-   ```
-5. Click "Send" and view your recommended playlist response.
 
 
 ## 🚀 **How to Run Locally**

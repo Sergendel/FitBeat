@@ -48,6 +48,9 @@ def lambda_handler(event, context):
         )
         playlist = orchestrator.run_planning_agent(description, num_tracks=20)
 
+        # print(f"playlist = {playlist}")
+        # print(f"json.dumps(playlist) = {json.dumps(playlist)}")
+
         # Store resulting playlist JSON to S3
         s3_client.put_object(
             Bucket=S3_BUCKET_NAME,

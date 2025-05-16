@@ -123,10 +123,13 @@ class Orchestrator:
 
         print("\n\n" + "#" * 100)
         print("### Step 4: Executing actions...")
-        self.execute_actions(actions_list, prompt_with_memory, num_tracks)
+
+        playlist = self.execute_actions(actions_list, prompt_with_memory, num_tracks)
 
         # update memory
         self.memory_manager.update_memory(user_prompt)
+
+        return playlist
 
     def execute_actions(self, actions_list, user_prompt, num_tracks=20):
         """

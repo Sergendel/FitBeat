@@ -3,7 +3,6 @@ import os
 import uuid
 
 import boto3
-from botocore.exceptions import ClientError
 
 lambda_client = boto3.client("lambda")
 s3_client = boto3.client("s3")
@@ -45,30 +44,55 @@ def lambda_handler(event, context):
         }
 
     elif http_method == "GET" and path.startswith("/status/"):
+
         # Extract job_id from path
+
         job_id = event["pathParameters"]["job_id"]
 
         try:
-            # Check if playlist exists in S3
+
             response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=f"{job_id}.json")
-            playlist_data = json.loads(response["Body"].read())
+
+            raw_content = response["Body"].read()
+
+            print(f"[Debug] S3 content: {raw_content}")
+
+            playlist_data = json.loads(raw_content)
 
             return {
                 "statusCode": 200,
-                "body": json.dumps({"status": "completed", "playlist": playlist_data}),
+                "body": json.dumps(
+                    {"status": "completed", "playlist": playlist_data["playlist"]}
+                ),
                 "headers": {"Content-Type": "application/json"},
             }
 
         except s3_client.exceptions.NoSuchKey:
-            # Playlist not ready yet
+
+            # Playlist not ready yet explicitly handled
+
             return {
                 "statusCode": 200,
                 "body": json.dumps({"status": "processing"}),
                 "headers": {"Content-Type": "application/json"},
             }
-        except ClientError as e:
-            # Handle potential S3 errors
-            print(f"[S3 Error]: {e.response['Error']['Message']}")
+
+        except KeyError as e:
+
+            print(f"[Key Error]: {str(e)}, content was: {raw_content}")
+
+            return {
+                "statusCode": 500,
+                "body": json.dumps(
+                    {"status": "error", "message": f"Missing key: {str(e)}"}
+                ),
+                "headers": {"Content-Type": "application/json"},
+            }
+
+        except Exception as e:
+
+            print(f"[Unhandled Exception]: {str(e)}")
+
             return {
                 "statusCode": 500,
                 "body": json.dumps(
