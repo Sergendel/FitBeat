@@ -19,5 +19,6 @@ exclude = [
     "deployment/template.yaml",
     "backend/resources/bin",
     "backend/deployment/.app_utils",
-    "backend/deployment/aws/.aws-sam"
+    "backend/deployment/aws/.aws-sam",
+    "frontend/node_modules"
 ]

@@ -38,9 +38,23 @@ def lambda_handler(event, context):
 
         # Immediately return explicit Job ID to client
         return {
-            "statusCode": 202,
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+            },
             "body": json.dumps({"job_id": job_id}),
-            "headers": {"Content-Type": "application/json"},
+        }
+    if event["httpMethod"] == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+            },
+            "body": json.dumps("OK"),
         }
 
     elif http_method == "GET" and path.startswith("/status/"):
@@ -64,7 +78,12 @@ def lambda_handler(event, context):
                 "body": json.dumps(
                     {"status": "completed", "playlist": playlist_data["playlist"]}
                 ),
-                "headers": {"Content-Type": "application/json"},
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "OPTIONS,GET",
+                },
             }
 
         except s3_client.exceptions.NoSuchKey:
@@ -74,7 +93,12 @@ def lambda_handler(event, context):
             return {
                 "statusCode": 200,
                 "body": json.dumps({"status": "processing"}),
-                "headers": {"Content-Type": "application/json"},
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "OPTIONS,GET",
+                },
             }
 
         except KeyError as e:
@@ -86,7 +110,12 @@ def lambda_handler(event, context):
                 "body": json.dumps(
                     {"status": "error", "message": f"Missing key: {str(e)}"}
                 ),
-                "headers": {"Content-Type": "application/json"},
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "OPTIONS,GET",
+                },
             }
 
         except Exception as e:
@@ -98,7 +127,12 @@ def lambda_handler(event, context):
                 "body": json.dumps(
                     {"status": "error", "message": "Internal server error"}
                 ),
-                "headers": {"Content-Type": "application/json"},
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "OPTIONS,GET",
+                },
             }
 
     else:
@@ -107,5 +141,10 @@ def lambda_handler(event, context):
         return {
             "statusCode": 404,
             "body": json.dumps({"error": "Endpoint not found."}),
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,GET",
+            },
         }

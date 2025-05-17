@@ -2,12 +2,23 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: FitBeat Asynchronous Architecture (2 Lambdas + S3 + API Gateway)
 
+
+
 Globals:
   Function:
     MemorySize: 1024
     Timeout: 180  # Default, overridden per function
 
 Resources:
+  FitBeatApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: FitBeatApi
+      StageName: Prod
+      Cors:
+        AllowOrigin: "'http://localhost:3000'"
+        AllowMethods: "'POST,GET,OPTIONS'"
+        AllowHeaders: "'Content-Type'"
 
   # Lightweight Lambda (Lambda #1)
   LightweightLambda:
@@ -27,14 +38,18 @@ Resources:
         RecommendApi:
           Type: Api
           Properties:
+            RestApiId: !Ref FitBeatApi
             Path: /recommend
             Method: post
+
 
         StatusApi:
           Type: Api
           Properties:
+            RestApiId: !Ref FitBeatApi
             Path: /status/{job_id}
             Method: get
+
 
   # Heavyweight Lambda (Lambda #2)
   HeavyweightLambda:
@@ -136,8 +151,8 @@ Resources:
 Outputs:
   RecommendApi:
     Description: "API Gateway endpoint for POST /recommend"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/recommend"
+    Value: !Sub "https://${FitBeatApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/recommend"
 
   StatusApi:
     Description: "API Gateway endpoint for GET /status/{job_id}"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status/{job_id}"
+    Value: !Sub "https://${FitBeatApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status/{job_id}"
