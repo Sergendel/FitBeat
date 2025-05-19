@@ -37,7 +37,7 @@ function App() {
     executed.current = false;
 
     const response = await fetch(
-      "https://hhdpmxbqwg.execute-api.us-east-1.amazonaws.com/Prod/recommend",
+      "https://o7dw8g1bu0.execute-api.us-east-1.amazonaws.com/Prod/recommend",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
