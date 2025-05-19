@@ -7,6 +7,8 @@ const simulatedSteps = [
   "🔌 Fetching additional song insights...",
   "📈 Ranking tracks by best fit...",
   "📊 Finalizing your personalized playlist...",
+  "⏳ This process may take up to 2 minutes. Thank you for your patience!"
+
 ];
 
 function App() {
@@ -16,7 +18,7 @@ function App() {
   const executed = useRef(false);
 
   const fetchPlaylist = useCallback((jobId, retries = 150) => {
-    fetch(`https://hhdpmxbqwg.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`)
+    fetch(`https://o7dw8g1bu0.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "completed" && data.playlist) {

@@ -13,7 +13,7 @@ s3_client = boto3.client("s3")
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 SECRET_NAME = os.environ["SECRET_NAME"]
 
-USE_MOCK_DATA = True
+USE_MOCK_DATA = False
 
 
 def get_mock_playlist():
