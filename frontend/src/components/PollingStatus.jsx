@@ -50,6 +50,12 @@ function PollingStatus({ jobId, onReset }) {
         ))}
       </div>
 
+      {status === "processing" && (
+        <div className="text-sm text-gray-500 mb-4">
+          ⏳ This process may take up to 2 minutes. Thank you for your patience!
+        </div>
+      )}
+
       {status === "completed" && playlist && (
         <>
           <h2 className="text-2xl font-bold my-4 text-indigo-700">

@@ -16,7 +16,7 @@ Resources:
       Name: FitBeatApi
       StageName: Prod
       Cors:
-        AllowOrigin: "'http://localhost:3000'"
+        AllowOrigin: "'https://main.dxpisg36o3xzj.amplifyapp.com'"
         AllowMethods: "'POST,GET,OPTIONS'"
         AllowHeaders: "'Content-Type'"
 
