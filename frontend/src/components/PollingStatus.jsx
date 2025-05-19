@@ -16,7 +16,7 @@ function PollingStatus({ jobId, onReset }) {
   const executed = useRef(false);
 
   const fetchPlaylist = useCallback((retries = 150) => {
-    fetch(`https://o7dw8g1bu0.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`)
+    fetch(`https://1xqg9hsfdl.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "completed" && data.playlist) {

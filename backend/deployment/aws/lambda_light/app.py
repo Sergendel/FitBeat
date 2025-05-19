@@ -40,7 +40,7 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "OPTIONS,POST",
             },
@@ -50,7 +50,7 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "OPTIONS,POST",
             },
@@ -80,7 +80,7 @@ def lambda_handler(event, context):
                 ),
                 "headers": {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "OPTIONS,GET",
                 },
@@ -95,7 +95,7 @@ def lambda_handler(event, context):
                 "body": json.dumps({"status": "processing"}),
                 "headers": {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "OPTIONS,GET",
                 },
@@ -112,7 +112,7 @@ def lambda_handler(event, context):
                 ),
                 "headers": {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "OPTIONS,GET",
                 },
@@ -129,7 +129,7 @@ def lambda_handler(event, context):
                 ),
                 "headers": {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
+                    "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "OPTIONS,GET",
                 },
@@ -143,7 +143,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"error": "Endpoint not found."}),
             "headers": {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "http://localhost:3000",
+                "Access-Control-Allow-Origin": "https://main.dxpisg36o3xzj.amplifyapp.com",
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "OPTIONS,GET",
             },
