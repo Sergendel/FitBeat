@@ -1,51 +1,32 @@
 import { useState } from "react";
 
-function InputForm({ onJobIdReceived }) {
+function InputForm({ onSubmit, loading }) {
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch("https://7u03tx4h0d.execute-api.us-east-1.amazonaws.com/Prod/recommend", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          description: description,
-          clear_memory: true,
-        }),
-      });
-
-      const data = await response.json();
-      onJobIdReceived(data.job_id); // pass job_id to parent
-    } catch (error) {
-      console.error("Error submitting description:", error);
-      alert("Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
+    onSubmit(description);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
       <input
         type="text"
-        className="w-full p-2 border border-gray-300 rounded"
-        placeholder="Describe the music you're looking for..."
+        placeholder="Describe your musical mood or preference..."
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         required
+        disabled={loading}
+        className="w-full px-6 py-4 rounded-xl border-2 border-gray-500 shadow-xl text-lg bg-gray-700 text-gray-100 transition duration-200 focus:outline-none focus:border-indigo-500"
       />
       <button
         type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className={`w-full md:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white py-3 px-8 rounded-xl shadow-lg font-semibold transition duration-300 ${
+          loading ? "opacity-60 cursor-not-allowed" : ""
+        }`}
         disabled={loading}
       >
-        {loading ? "Submitting..." : "Get Playlist"}
+        {loading ? "Generating Playlist..." : "🎶 Generate Playlist"}
       </button>
     </form>
   );

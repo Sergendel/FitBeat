@@ -1,53 +1,104 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
-function PollingStatus({ jobId }) {
+const simulatedSteps = [
+  "🧠 Understanding your musical taste...",
+  "🔍 Filtering perfect tracks just for you...",
+  "🔌 Fetching additional song insights...",
+  "📈 Ranking tracks by best fit...",
+  "📊 Finalizing your personalized playlist...",
+];
+
+function PollingStatus({ jobId, onReset }) {
   const [status, setStatus] = useState("processing");
   const [playlist, setPlaylist] = useState(null);
+  const [transcript, setTranscript] = useState([]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(
-          `https://7u03tx4h0d.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`
-        );
-        const data = await response.json();
+  const executed = useRef(false);
 
-        if (data.status === "completed") {
+  const fetchPlaylist = useCallback((retries = 150) => {
+    fetch(`https://hhdpmxbqwg.execute-api.us-east-1.amazonaws.com/Prod/status/${jobId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "completed" && data.playlist) {
           setStatus("completed");
           setPlaylist(data.playlist);
-          clearInterval(interval);
+        } else if (retries > 0) {
+          setTimeout(() => fetchPlaylist(retries - 1), 4000);
         }
-      } catch (error) {
-        console.error("Polling failed:", error);
-      }
-    }, 3000); // poll every 3 seconds
-
-    return () => clearInterval(interval);
+      });
   }, [jobId]);
 
-  if (status === "processing") {
-    return <p className="text-center text-yellow-600">⏳ Generating your playlist...</p>;
-  }
+  useEffect(() => {
+    if (executed.current) return;
+    executed.current = true;
+
+    simulatedSteps.forEach((step, i) => {
+      setTimeout(() => {
+        setTranscript((prev) => [...prev, step]);
+        if (i === simulatedSteps.length - 1) fetchPlaylist();
+      }, i * 800);
+    });
+  }, [fetchPlaylist]);
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-green-700 mb-4">🎶 Your Playlist:</h2>
-      <ul className="space-y-2">
-        {playlist.map((track, index) => (
-          <li key={index} className="border p-3 rounded bg-white shadow">
-            <p><strong>Artist:</strong> {track.artist}</p>
-            <p><strong>Track:</strong> {track.track}</p>
-            <a
-              href={track.youtube_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
-              Watch on YouTube
-            </a>
-          </li>
+    <div className="text-center p-4">
+      <div className="space-y-2 my-4 text-lg text-indigo-700 font-medium">
+        {transcript.map((step, idx) => (
+          <p key={idx} className="my-2 py-2 animate-pulse">
+            {step}
+          </p>
         ))}
-      </ul>
+      </div>
+
+      {status === "completed" && playlist && (
+        <>
+          <h2 className="text-2xl font-bold my-4 text-indigo-700">
+            🎵 Your Personalized AI Playlist
+          </h2>
+          <div className="overflow-x-auto shadow-lg rounded-lg">
+            <table className="w-full text-left table-auto">
+              <thead className="bg-indigo-700 text-white">
+                <tr>
+                  <th className="px-6 py-3">Artist</th>
+                  <th className="px-6 py-3">Track Name</th>
+                  <th className="px-6 py-3">YouTube</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playlist.map(({ artist, track, youtube_link }, i) => (
+                  <tr
+                    key={i}
+                    className="odd:bg-gray-50 even:bg-white hover:bg-indigo-100 transition duration-300"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-800">
+                      {artist}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {track}
+                    </td>
+                    <td className="px-6 py-4">
+                      <a
+                        href={youtube_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:text-indigo-800 hover:underline transition duration-200"
+                      >
+                        ▶️ Play
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button
+            className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+            onClick={onReset}
+          >
+            🔄 Create Another Playlist
+          </button>
+        </>
+      )}
     </div>
   );
 }

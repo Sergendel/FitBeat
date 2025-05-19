@@ -13,6 +13,67 @@ s3_client = boto3.client("s3")
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 SECRET_NAME = os.environ["SECRET_NAME"]
 
+USE_MOCK_DATA = True
+
+
+def get_mock_playlist():
+    # Enhanced mock playlist data for robust frontend_old testing
+    playlist_json = {
+        "playlist": [
+            {
+                "artist": "OneRepublic",
+                "track": "Counting Stars",
+                "youtube_link": "https://youtube.com/watch?v=hT_nvWreIhg",
+            },
+            {
+                "artist": "Coldplay",
+                "track": "Adventure of a Lifetime",
+                "youtube_link": "https://youtube.com/watch?v=QtXby3twMmI",
+            },
+            {
+                "artist": "Pharrell Williams",
+                "track": "Happy",
+                "youtube_link": "https://youtube.com/watch?v=ZbZSe6N_BXs",
+            },
+            {
+                "artist": "Maroon 5",
+                "track": "Sugar",
+                "youtube_link": "https://youtube.com/watch?v=09R8_2nJtjg",
+            },
+            {
+                "artist": "Imagine Dragons",
+                "track": "Believer",
+                "youtube_link": "https://youtube.com/watch?v=7wtfhZwyrcc",
+            },
+            {
+                "artist": "Ed Sheeran",
+                "track": "Shape of You",
+                "youtube_link": "https://youtube.com/watch?v=JGwWNGJdvx8",
+            },
+            {
+                "artist": "The Weeknd",
+                "track": "Blinding Lights",
+                "youtube_link": "https://youtube.com/watch?v=4NRXx6U8ABQ",
+            },
+            {
+                "artist": "Bruno Mars",
+                "track": "Uptown Funk",
+                "youtube_link": "https://youtube.com/watch?v=OPf0YbXqDm0",
+            },
+            {
+                "artist": "Dua Lipa",
+                "track": "Levitating",
+                "youtube_link": "https://youtube.com/watch?v=TUVcZfQe-Kw",
+            },
+            {
+                "artist": "Taylor Swift",
+                "track": "Shake It Off",
+                "youtube_link": "https://youtube.com/watch?v=nfWlot6h_JM",
+            },
+        ]
+    }
+    return playlist_json
+
 
 def get_secrets():
     try:
@@ -46,7 +107,11 @@ def lambda_handler(event, context):
         orchestrator = Orchestrator(
             openai_api_key, genius_api_key, youtube_api_key, clear_memory
         )
-        playlist = orchestrator.run_planning_agent(description, num_tracks=20)
+        if USE_MOCK_DATA:
+            print("[INFO] Using mock data for playlist generation.")
+            playlist = get_mock_playlist()
+        else:
+            playlist = orchestrator.run_planning_agent(description, num_tracks=20)
 
         # print(f"playlist = {playlist}")
         # print(f"json.dumps(playlist) = {json.dumps(playlist)}")

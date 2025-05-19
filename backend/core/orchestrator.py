@@ -171,7 +171,7 @@ class Orchestrator:
             print("\n" + "-" * 50)
             print(f"Action # {i_a + 1}. {action}")
 
-            # Check  frontend mode
+            # Check  frontend_old mode
             if config.FRONTEND_MODE and action == "Retrieve_and_Convert":
                 print("Skipping 'Retrieve_and_Convert' due to FRONTEND_MODE=True.")
                 continue
