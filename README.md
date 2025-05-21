@@ -8,7 +8,7 @@ Link:  [https://main.dxpisg36o3xzj.amplifyapp.com](https://main.dxpisg36o3xzj.am
 
 ## Demo Video
 
-[** View FitBeat Demo**](https://github.com/sergendel/FitBeat/blob/main/FitBeat.mp4)
+[![FitBeat Demo](./FitBeat_demo.gif)](./FitBeat.mp4)
 
 
 ---
@@ -59,7 +59,6 @@ Depending on the application configuration (FRONTEND_MODE), FitBeat provides one
 - - Additionally, downloads selected tracks from YouTube and converts them to MP3 format.
 ---
 
----
 
 
 
