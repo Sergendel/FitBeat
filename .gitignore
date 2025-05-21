@@ -37,7 +37,7 @@ genius_corpus/
 # included
 !backend/deployment/aws/lambda_single/requirements.txt
 !backend/.env.example
-!README.md
+!README_long.md
 
 
 # aws deploy

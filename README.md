@@ -1,151 +1,36 @@
-# 🎧 FitBeat: LLM-Powered Music Recommendation Agent
+# FitBeat: LLM-Powered Music Recommendation Agent
 
 **Author:** Sergey Gendel
+**Live Demo:** [https://main.dxpisg36o3xzj.amplifyapp.com](https://main.dxpisg36o3xzj.amplifyapp.com)
 
 ---
 
-## 🚀 Project Overview
+## Demo Video
 
-**FitBeat** — LLM-powered Music Recommendation Agent
+Watch FitBeat in action:
 
-FitBeat is an LLM-powered Music Recommendation Agent that transforms emotional or situational descriptions
-(e.g., "music for intense gym training" or "playlist for a child's birthday party") into personalized playlists.
+https://main.dxpisg36o3xzj.amplifyapp.com
 
-## 🛠️ Technology Stack
 
-* **Languages & Libraries:** Python,Langchain, ChromaDB,  Sentence-Transformers, OpenAI API, Genius API, 
+---
+
+## Project Overview
+
+FitBeat is an AI-driven music recommendation agent that converts emotional or situational descriptions (e.g., "music for intense gym training") into personalized playlists using advanced NLP techniques and cloud-based infrastructure.
+
+---
+
+## Technology Stack
+
+* **Languages & Libraries:** Python, Langchain, ChromaDB, Sentence-Transformers, OpenAI API, Genius API
 * **Machine Learning Techniques:** Retrieval-Augmented Generation (RAG), Embedding-based Semantic Ranking
-* **Cloud Infrastructure:** AWS Lambda, AWS API Gateway, AWS S3, AWS Secrets Manager, AWS CloudWatch
-* **Deployment Tools:** AWS Serverless Application Model (SAM), Docker, GitHub Actions (CI/CD)
+* **Cloud Infrastructure:** AWS Lambda, API Gateway, S3, Secrets Manager, CloudWatch
+* **Deployment Tools:** AWS SAM, Docker, GitHub Actions (CI/CD)
 * **Testing & Quality:** Pytest, Flake8, Black, Isort
 
 ---
-## 📦 Deployment and Usage (Two-Lambda Asynchronous AWS Deployment)
 
-### ✅ Deployment Overview
-
-FitBeat uses an asynchronous, two-Lambda AWS deployment architecture with AWS SAM. The setup includes:
-
-* **Lambda #1 (Lightweight Lambda)**: Receives initial API requests, generates Job IDs, and triggers the Heavyweight Lambda asynchronously.
-* **Lambda #2 (Heavyweight Lambda)**: Handles intensive tasks, including playlist generation and YouTube link retrieval, and stores the results in AWS S3.
-* **AWS API Gateway**: Provides explicit, secure endpoints for interacting with Lambdas.
-* **AWS S3**: Stores generated playlists.
-
-### ✅ Architecture Flowchart
-
-```
-Frontend          Lambda #1 (Light)          Lambda #2 (Heavy)          S3 (Storage)
-  │                      │                           │                       │
-  ├───(HTTP POST)───────>│                           │                       │
-  │                      ├── Generate Job ID         │                       │
-  │                      ├── Async Invoke ──────────>│                       │
-  │                      │                           ├─── Perform Heavy Task │
-  │<─────(Job ID)────────┤                           │                       │
-  │                      │                           ├─── Save Result ──────>│
-  │                      │                           │                       │
-(Polling starts)         │                           │                       │
-  │                      │                           │                       │
-  ├─(HTTP GET: status)──>│                           │                       │
-  │                      ├───(Check S3 status)──────────────────────────────>│
-  │                      │<───("processing"/no file)─────────────────────────┤
-  │<─("processing")──────┤                           │                       │
-  │                      │                           │                       │
-  ├─(HTTP GET: status)──>│                           │                       │
-  │                      ├───(Check S3 status)──────────────────────────────>│
-  │                      │<───("completed"/file found + data)────────────────┤
-  │<─("completed"+data)──┤                           │                       │
-  │                      │                           │                       │
-  ├─ Display Results ───>│                           │                       │
-```
-
-### ✅ Deployed API Endpoints
-
-* **Request Music Recommendation (`POST`)**:
-
-```bash
-https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend
-```
-
-* **Check Status (`GET`)**:
-
-```bash
-https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/{job_id}
-```
-
-### ✅ Testing the Deployed API
-
-**Using Curl:**
-
-Request recommendation (get job ID):
-
-```bash
-curl -X POST https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend \
-     -H "Content-Type: application/json" \
-     -d '{"description": "upbeat music for intense gym training", "clear_memory": true}'
-```
-
-Response example (Job ID):
-
-```json
-{"job_id": "your-job-id"}
-```
-
-Poll status using Job ID:
-
-```bash
-curl https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/your-job-id
-```
-
-Initially expect:
-
-```json
-{"status": "processing"}
-```
-
-Once processing completes:
-
-```json
-{
-  "status": "completed",
-  "playlist": [
-    {"artist": "Artist Name", "track": "Track Name", "youtube_link": "YouTube URL"},
-    ...
-  ]
-}
-```
-
-**Using Postman:**
-
-1. Create a new POST request in Postman:
-
-   * URL: `https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/recommend`
-   * Headers:
-
-     ```
-     Content-Type: application/json
-     ```
-   * Body (raw JSON):
-
-     ```json
-     {
-       "description": "upbeat music for intense gym training",
-       "clear_memory": true
-     }
-     ```
-   * Click "Send" and note your returned `job_id`.
-
-2. Poll status in Postman:
-
-   * Create a new GET request:
-
-     ```
-     https://7tqflxjhvd.execute-api.us-east-1.amazonaws.com/Prod/status/{your-job-id}
-     ```
-   * Send request until status is `completed` and playlist appears.
-
-
-
-## 📌 How It Works (Quick Overview)
+##  How It Works (Quick Overview)
 
 ### 1. Initial Filtering (Numeric Analysis)
 
@@ -175,113 +60,80 @@ Depending on the application configuration (FRONTEND_MODE), FitBeat provides one
 - - Additionally, downloads selected tracks from YouTube and converts them to MP3 format.
 ---
 
-## 🚀 **Agent's Internal Workflow (Pipeline)**
+---
 
-FitBeat operates according to the following structured pipeline:
 
-### 1. **Memory Initialization (User-Controlled, Optional)**
 
-At the start of each session, the agent asks if the user wants to use previously stored conversation context (memory):
+## Deployment Overview
+
+FitBeat uses an asynchronous, two-Lambda AWS deployment architecture with AWS SAM. The setup includes:
+
+* **Lambda #1 (Lightweight Lambda)**: Receives initial API requests, generates Job IDs, and triggers the Heavyweight Lambda asynchronously.
+* **Lambda #2 (Heavyweight Lambda)**: Handles intensive tasks, including playlist generation and YouTube link retrieval, and stores the results in AWS S3.
+* **AWS API Gateway**: Provides explicit, secure endpoints for interacting with Lambdas.
+* **AWS S3**: Stores generated playlists.
+
+### Architecture Flowchart
 
 ```
-⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
+Frontend          Lambda #1 (Light)          Lambda #2 (Heavy)          S3 (Storage)
+  │                      │                           │                       │
+  ├───(HTTP POST)───────>│                           │                       │
+  │                      ├── Generate Job ID         │                       │
+  │                      ├── Async Invoke ──────────>│                       │
+  │                      │                           ├─── Perform Heavy Task │
+  │<─────(Job ID)────────┤                           │                       │
+  │                      │                           ├─── Save Result ──────>│
+  │                      │                           │                       │
+(Polling starts)         │                           │                       │
+  │                      │                           │                       │
+  ├─(HTTP GET: status)──>│                           │                       │
+  │                      ├───(Check S3 status)──────────────────────────────>│
+  │                      │<───("processing"/no file)─────────────────────────┤
+  │<─("processing")──────┤                           │                       │
+  │                      │                           │                       │
+  ├─(HTTP GET: status)──>│                           │                       │
+  │                      ├───(Check S3 status)──────────────────────────────>│
+  │                      │<───("completed"/file found + data)────────────────┤
+  │<─("completed"+data)──┤                           │                       │
+  │                      │                           │                       │
+  ├─ Display Results ───>│                           │                       │
 ```
 
-- If **"n"**, the agent combines previous summarized prompts with the current prompt, enhancing context.
-- If **"y"**, memory resets, starting fresh contextually.
-
-### 2. **Action Plan Creation (LLM-based, Textual)**
-
-FitBeat analyzes the (combined or standalone) user prompt to generate a clear, human-readable textual action plan outlining necessary steps.
-
-### 3. **Action Plan Structuring (LLM-based, Structured JSON)**
-
-Translates the textual action plan into structured, machine-readable JSON actions, selected from the following available actions:
-
-- **Analyze:** Convert user's prompt into numeric audio parameters.
-- **Filter:** Filter tracks from the dataset based on numeric audio parameters.
-- **Refine:**  Hybrid Semantic Ranking (Embeddings & RAG) of tracks.
-- **Create_Recommendation_Table:**  Create structured, interactive recommendation table (Artist, Track Name, YouTube link).
-- **Retrieve_and_Convert:** Download selected tracks from YouTube and convert to MP3.
-- **Summarize:** Generate and present a concise summary of the final playlist.
-
-### 4. **Execute Actions (Agent Tools)**
-
-Executes each structured action using dedicated agent tools (listed in the tools section).
 
 
 
-## **Agent Tools (Operational Components)**
+## How to Run Locally
 
-FitBeat utilizes explicit, concrete operational tools to execute the generated action plan:
+### Step 1: Clone Repository
 
-- **Filter Tracks (Numeric Filtering):**  
-  Filters tracks from the Kaggle dataset using numeric audio parameters derived by the LLM.
+```bash
+git clone https://github.com/your-username/FitBeat.git
+cd FitBeat
+```
 
-- **Hybrid Semantic Ranking (Embeddings & RAG):**  
-  Ranks candidate tracks based on semantic relevance by analyzing lyrics and descriptions retrieved from Genius.com, using the embeddings similaruty and LLM through (RAG).
+### Step 2: Install Dependencies
 
-- **Create Recommendation Table:**  
-   Generates structured playlist table (playlist.json and playlist.csv) with direct YouTube links.
+```bash
+pip install -r requirements.txt
+```
 
-- **Retrieve and Convert:**  
-  Downloads refined tracks from YouTube (`yt-dlp`) and converts them to MP3 (`ffmpeg`).
+### Step 3: Configure API Keys
 
-- **Summarize Playlist:**  
-  Provides a summary of the final recommended playlist.
+Copy `.env.example` to `.env` and insert your OpenAI and Genius API keys:
 
-> **The agent may selectively apply some (or all) of these tools, based on the action plan it autonomously generates.**
-  **Note: Retrieve_and_Convert is executed only if FRONTEND_MODE=False..**
+```ini
+OPENAI_API_KEY="your-openai-api-key"
+GENIUS_API_KEY="your-genius-api-key"
+```
 
+### Step 4: Run Application
 
-## 🧠 **Agent Memory (Persistent Context Management)**
+```bash
+python -m core.orchestrator
+```
 
-FitBeat features persistent memory, enabling context preservation across multiple interactions and separate runs to refine recommendations based on previous user requests.
-
-### 📌 **How It Works:**
-
-- **Persistent Storage (LLM-based Summarization):**
-  User prompts are summarized by the LLM (GPT-3.5 Turbo), and these concise summaries (rather than full prompts) are stored in a dedicated file (`conversation_memory.json`). 
-  This ensures relevant context is maintained efficiently and clearly.
-
-- **User-Controlled Memory:**
-  At each session's start, FitBeat asks:
-  ```
-  ⚠️ Do you want to clear previous memory and start a new unrelated task? (y/n):
-  ```
-  - Answering **"y"** clears memory and starts fresh.
-  - Answering **"n"** retains existing summarized memory.
-
-
-## 📌 Continuous Integration (CI)
-
-FitBeat utilizes **GitHub Actions** to ensure code reliability, maintainability, and adherence to best practices.
-Every push or pull request to the `main` branch automatically triggers the following checks and tests:
-
-### ✅ Automated Tests
-
-- **Unit Tests**  
-  Fast, isolated tests verifying individual components. These tests run against ChromaDB’s in-memory storage to maximize speed and isolation.
-
-- **End-to-End (E2E) Tests**  
-  Comprehensive integration tests covering the full workflow of the application, ensuring FitBeat works seamlessly from the user's perspective.
-
-### 🧹 Code Quality & Style Checks
-
-- **Flake8 Linting**  
-  Enforces adherence to [PEP8](https://www.python.org/dev/peps/pep-0008/) guidelines and detects common Python anti-patterns. Configurations are defined in `pyproject.toml`.
-
-- **Black & Isort Formatting**  
-  Ensures consistent code style (`black`) and correct import ordering (`isort`), configured via `pyproject.toml`.
-
-### 🛠️ Testing Environments
-
-- **Testing Environment** (`GITHUB_ACTIONS=true`)  
-  Uses in-memory databases and mock services to provide maximum isolation and performance during continuous integration runs.
-
-- **Production Environment**  
-  Clearly separated from testing configurations, using persistent storage and secure settings for real-world deployment.
-
+---
 
 ##  **FitBeat Execution Examples**
 
@@ -345,20 +197,20 @@ Demonstrates memory across sequential interactions:
 ---
 
 
-## 🚀 **How to Run Locally**
+##  **How to Run Locally**
 
-### ✅ **1. Clone the Repository**
+### **1. Clone the Repository**
 ```bash
 git clone https://github.com/your-repo/FitBeat.git
 cd FitBeat
 ```
 
-### ✅ **2. Install Requirements**
+### **2. Install Requirements**
 ```bash
 pip install -r requirements.txt
 ```
 
-### ✅ 3. API Keys Configuration
+### 3. API Keys Configuration
 
 To run this project, you must set up API keys as environment variables:
 
@@ -383,7 +235,7 @@ GENIUS_API_KEY="your-genius-api-key"
 > **Note:** Genius API keys are free and publicly available.
 
 
-### ✅ **4. Run the Application**
+### **4. Run the Application**
 
 Execute the orchestrator script with your desired prompt:
 
@@ -402,7 +254,7 @@ Do you want to clear previous memory and start a new unrelated task? (y/n):
 
 ---
 
-### ✅ **5. Example of execution **
+### **5. Example of execution **
 
 ```bash
 C:\Users\serge\miniconda3\envs\validate_env\python.exe C:\work\INTERVIEW_PREPARATION\FitBeat\src\orchestrator.py 
@@ -545,13 +397,13 @@ CSV playlist saved to 'output\playlists\romantic_date_dance_playlist\playlist.cs
 ```
 
 
-## 👤 **Author**
+##  **Author**
 
 This project (**FitBeat**) was created and developed by **Sergey Gendel**.
 
 ---
 
-## ⚠️ **Legal Disclaimer (YouTube Downloads)**
+##  **Legal Disclaimer (YouTube Downloads)**
 
 Downloading content directly from YouTube may violate YouTube's [Terms of Service](https://www.youtube.com/t/terms), specifically regarding unauthorized downloading and distribution.  
 **FitBeat** is provided for demonstration, educational, and personal use only.  

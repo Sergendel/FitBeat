@@ -233,6 +233,7 @@ if __name__ == "__main__":
 
     # Scenario 1: Analyze → Filter → Retrieve_and_Convert → Summarize
     user_prompt = "music for nightmare movie"
+    orchestrator.run_planning_agent(user_prompt, num_tracks=20)
 
     # Scenario 2: Analyze → Filter → Refine → Retrieve_and_Convert → Summarize
     # user_prompt = (
@@ -260,4 +261,15 @@ if __name__ == "__main__":
     # # next run
     # user_prompt = "I forgot to say that we would probably dance during our date"
 
-    orchestrator.run_planning_agent(user_prompt, num_tracks=20)
+    # link:
+    # https: // main.dxpisg36o3xzj.amplifyapp.com /
+
+    # Prompt examples:
+    # Romantic, soundhealing, mantra
+    # Create a high-energy playlist perfect for an intense cardio workout.
+    # Suggest calm, relaxing music for evening meditation.
+    # Create the perfect playlist for a long summer road trip."
+    # Playlist for romantic date, tracks with deeply meaningful and romantic lyrics
+    # Suggest songs to match a cozy rainy - day vibe.
+    # Generate an energetic playlist for a weekend dance party.
+    # Suggest popular hits to get everyone dancing
