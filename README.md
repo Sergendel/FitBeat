@@ -1,15 +1,14 @@
 # FitBeat: LLM-Powered Music Recommendation Agent
 
 **Author:** Sergey Gendel
-**Live Demo:** [https://main.dxpisg36o3xzj.amplifyapp.com](https://main.dxpisg36o3xzj.amplifyapp.com)
+---
+Link:  [https://main.dxpisg36o3xzj.amplifyapp.com](https://main.dxpisg36o3xzj.amplifyapp.com)
 
 ---
 
 ## Demo Video
 
-Watch FitBeat in action:
-
-https://main.dxpisg36o3xzj.amplifyapp.com
+[** View FitBeat Demo**](https://github.com/sergendel/FitBeat/blob/main/FitBeat.mp4)
 
 
 ---
