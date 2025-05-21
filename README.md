@@ -8,7 +8,7 @@ Link:  [https://main.dxpisg36o3xzj.amplifyapp.com](https://main.dxpisg36o3xzj.am
 
 ## Demo Video
 
-[![FitBeat Demo](./FitBeat_demo.gif)](./FitBeat.mp4)
+[![FitBeat Demo](./FitBeat.gif)](./FitBeat.mp4)
 
 
 ---
